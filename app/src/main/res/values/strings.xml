@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Spedlite</string>
+    <string name="common_yes">Yes</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_ok">Ok</string>
+    <string name="login_welcome">Welcome!</string>
+    <string name="login_body">Please log in to the mobile app</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_cta">Login</string>
+    <string name="error_default">Unexpected error, try again later</string>
+    <string name="task_details_title">Task details</string>
+</resources>
