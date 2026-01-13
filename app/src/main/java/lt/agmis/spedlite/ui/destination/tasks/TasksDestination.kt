@@ -1,14 +1,14 @@
 package lt.agmis.spedlite.ui.destination.tasks
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -19,10 +19,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +30,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.di.AppContainer
+import lt.agmis.spedlite.location.LocationService
 import lt.agmis.spedlite.model.Task
 import lt.agmis.spedlite.navigation.AppNavigator
 import lt.agmis.spedlite.navigation.DialogManager
@@ -52,8 +52,24 @@ import lt.agmis.spedlite.util.ExceptionMessageParser
 @Composable
 fun TasksDestination(appContainer: AppContainer) {
     val viewModel = viewModel<TasksViewModel>(factory = TasksViewModel.factory(appContainer))
+    val context = LocalContext.current
+
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        if (fineLocationGranted) {
+            LocationService.start(context)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.loadTasks()
+        val permissions = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        permissionsLauncher.launch(permissions.toTypedArray())
     }
     TasksScreen(
         toggleAppTheme = viewModel::toggleAppTheme,

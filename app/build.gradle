@@ -79,6 +79,7 @@ dependencies {
     //    ksp libs.androidx.room.compiler
 
     implementation libs.androidx.appcompat
+    implementation libs.play.services.location
     implementation libs.androidx.compose.animation
 
     implementation libs.ktor.okhtpp

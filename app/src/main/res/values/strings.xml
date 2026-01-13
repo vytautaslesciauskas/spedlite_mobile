@@ -19,4 +19,6 @@
     <string name="settings_repeat_password">Repeat new password</string>
     <string name="settings_password_success">Your password successfully changed</string>
     <string name="task_details_open_map">Open map</string>
+    <string name="location_service_notification_title">Location Tracking</string>
+    <string name="location_service_notification_text">Tracking location for tasks</string>
 </resources>

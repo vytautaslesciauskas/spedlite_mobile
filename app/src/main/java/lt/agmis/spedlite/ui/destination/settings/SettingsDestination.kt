@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.di.AppContainer
+import lt.agmis.spedlite.location.LocationService
 import lt.agmis.spedlite.navigation.AppNavigator
 import lt.agmis.spedlite.navigation.ConfirmDialog
 import lt.agmis.spedlite.navigation.DialogManager
@@ -257,6 +258,7 @@ private fun Preview() {
 }
 
 class SettingsViewModel(
+    private val application: android.app.Application,
     private val appNavigator: AppNavigator,
     private val dialogManager: DialogManager,
     private val settings: SpedliteSettings,
@@ -268,6 +270,7 @@ class SettingsViewModel(
         fun factory(appContainer: AppContainer) = viewModelFactory {
             initializer<SettingsViewModel> {
                 SettingsViewModel(
+                    appContainer.application,
                     appContainer.appNavigator,
                     appContainer.dialogManager,
                     appContainer.settings,
@@ -306,6 +309,7 @@ class SettingsViewModel(
     fun onLogoutClick() {
         dialogManager.showConfirmDialog(
             ConfirmDialog(message = R.string.settings_logout_confirm, onConfirm = {
+                LocationService.stop(application)
                 apiClient.clearToken()
                 appNavigator.setRoot(Screen.Login())
             })
