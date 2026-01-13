@@ -40,17 +40,17 @@ val openSans = FontFamily(
     ),
     Font(
         resId = R.font.open_sans,
-        weight = FontWeight.W700,
+        weight = FontWeight.Bold,
         style = FontStyle.Normal,
         loadingStrategy = FontLoadingStrategy.Blocking,
-        variationSettings = FontVariation.Settings(FontWeight.W700, FontStyle.Normal),
+        variationSettings = FontVariation.Settings(FontWeight.Bold, FontStyle.Normal),
     ),
     Font(
         resId = R.font.open_sans,
-        weight = FontWeight.W900,
+        weight = FontWeight.SemiBold,
         style = FontStyle.Normal,
         loadingStrategy = FontLoadingStrategy.Blocking,
-        variationSettings = FontVariation.Settings(FontWeight.W900, FontStyle.Normal),
+        variationSettings = FontVariation.Settings(FontWeight.SemiBold, FontStyle.Normal),
     ),
     Font(
         resId = R.font.open_sans_italic,
@@ -114,6 +114,13 @@ val Typography = Typography(
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = openSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.sp,
     ),
     bodySmall = TextStyle(
         fontFamily = openSans,

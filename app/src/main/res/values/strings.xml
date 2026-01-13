@@ -10,4 +10,12 @@
     <string name="login_cta">Login</string>
     <string name="error_default">Unexpected error, try again later</string>
     <string name="task_details_title">Task details</string>
+    <string name="settings_logout">Log Out</string>
+    <string name="settings_privacy">Privacy Policy</string>
+    <string name="settings_change_password">Change Password</string>
+    <string name="settings_logout_confirm">Do you want to log out?</string>
+    <string name="settings_current_password">Enter current password</string>
+    <string name="settings_new_password">Enter new password</string>
+    <string name="settings_repeat_password">Repeat new password</string>
+    <string name="settings_password_success">Your password successfully changed</string>
 </resources>

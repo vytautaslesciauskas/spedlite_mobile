@@ -10,7 +10,7 @@ class ExceptionMessageParser(
 
     fun parseMessageOrNull(exception: Throwable): String? {
         return when (exception) {
-            is BackendException -> exception.body?.message?.takeUnless { it.isBlank() }
+            is BackendException -> exception.body?.error?.takeUnless { it.isBlank() }
                 ?: exception.message?.takeUnless { it.isBlank() }
             else -> null
         }

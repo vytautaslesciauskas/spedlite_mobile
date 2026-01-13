@@ -72,7 +72,7 @@ data class LocationUpdateResponse(
 
 @Serializable
 data class ErrorBody(
-    val message: String
+    val error: String
 )
 
 class BackendException(
@@ -137,8 +137,9 @@ class SpedliteApiClient(
                         val errorBody = runCatching { json.decodeFromString<ErrorBody>(errorJson) }
                             .onFailure { Napier.e("Failed to parse ErrorBody from $errorJson", it) }
                             .getOrNull()
-                        val exception = BackendException(statusCode, errorBody, errorJson, request.url.toString())
-                        if (response.status == HttpStatusCode.Unauthorized) {
+                        val url = request.url.toString()
+                        val exception = BackendException(statusCode, errorBody, errorJson, url)
+                        if (response.status == HttpStatusCode.Unauthorized && !url.contains("auth_change")) {
                             eventDispatcher.tryEmit(Event.Unauthorized(errorBody))
                         }
                         throw exception
@@ -203,7 +204,7 @@ class SpedliteApiClient(
         newPassword: String,
         newPasswordConfirm: String = newPassword
     ): ChangePasswordResponse {
-        return client.submitForm(
+        val response =  client.submitForm(
             url = "$baseUrl/auth_change.php",
             formParameters = parameters {
                 token?.let { append("token", it) }
@@ -211,7 +212,12 @@ class SpedliteApiClient(
                 append("new_password", newPassword)
                 append("new_password_confirm", newPasswordConfirm)
             }
-        ).body()
+        ).body<ChangePasswordResponse>()
+        return response
+    }
+
+    fun clearToken() {
+        token = null
     }
 
 }

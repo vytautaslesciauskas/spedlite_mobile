@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
             .onEach { event ->
                 if (appNavigator.backStack.lastOrNull() !is Screen.Login) {
                     appNavigator.setRoot(Screen.Login())
-                    dialogManager.showInfoDialog(InfoDialog(event.errorBody?.message ?: "Unauthorized"))
+                    dialogManager.showInfoDialog(InfoDialog(event.errorBody?.error ?: "Unauthorized"))
                 }
             }
             .launchIn(AppScope)

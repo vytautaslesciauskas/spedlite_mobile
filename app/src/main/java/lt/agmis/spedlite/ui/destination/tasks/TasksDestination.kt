@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIcon
 import lt.agmis.spedlite.ui.component.SpedliteIconButtonRound
+import lt.agmis.spedlite.ui.component.SpedliteListItem
 import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTopAppBar
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
@@ -78,7 +80,7 @@ private fun TasksScreen(
     PullToRefreshBox(isRefreshing = isLoading, onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
         SpedliteScaffold(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(SpedliteTheme.dimen.verticalPadding / 4),
             topBar = {
                 SpedliteTopAppBar(actions = {
                     DarkModeSwitch(modifier = Modifier, onCheckedChange = toggleAppTheme)
@@ -94,20 +96,24 @@ private fun TasksScreen(
 
 @Composable
 private fun TaskItem(task: Task, onClick: () -> Unit) {
-    SpedliteCard(modifier = Modifier.padding(horizontal = SpedliteTheme.dimen.horizontalPadding), onClick = onClick) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SpedliteIcon(R.drawable.ic_truck)
-            Gap()
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = task.type, style = MaterialTheme.typography.titleMedium)
-                Text(text = task.visited, style = MaterialTheme.typography.bodySmall, color = Color(0xFFB1B2B4))
-            }
-            Gap()
+    SpedliteListItem(
+        onClick = onClick,
+        headlineContent = {
+            Text(text = task.type)
+        },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+        supportingContent = {
+            Text(text = task.visited)
+        },
+        trailingContent = {
             SpedliteButton(onClick = {}) {
                 Text(text = "Begin")
             }
+        },
+        leadingContent = {
+            SpedliteIcon(R.drawable.ic_truck)
         }
-    }
+    )
 }
 
 @PreviewLightDark

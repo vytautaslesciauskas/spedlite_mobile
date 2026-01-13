@@ -47,6 +47,7 @@ import lt.agmis.spedlite.ui.component.GapHalf
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTextField
+import lt.agmis.spedlite.ui.component.SpedliteTextFieldPassword
 import lt.agmis.spedlite.ui.component.SpedliteTopAppBar
 import lt.agmis.spedlite.ui.theme.PreviewDayNight
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
@@ -95,8 +96,7 @@ private fun LoginScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             GapHalf()
-            var passwordVisible by remember { mutableStateOf(false) }
-            SpedliteTextField(
+            SpedliteTextFieldPassword(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier
@@ -107,20 +107,6 @@ private fun LoginScreen(
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                suffix = {
-                    Icon(
-                        painter = painterResource(if (passwordVisible) R.drawable.visibility_on else R.drawable.visibility_off),
-                        contentDescription = null,
-                        modifier = Modifier.clickable(
-                            onClick = {
-                                passwordVisible = !passwordVisible
-                            },
-                            indication = ripple(bounded = false),
-                            interactionSource = null
-                        )
-                    )
-                }
             )
 
             GapHalf()
