@@ -1,5 +1,6 @@
 package lt.agmis.spedlite.ui.destination.details
 
+import android.content.Intent
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,16 +16,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import io.github.aakira.napier.Napier
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.di.AppContainer
 import lt.agmis.spedlite.model.Task
@@ -39,7 +42,6 @@ import lt.agmis.spedlite.ui.component.Gap10
 import lt.agmis.spedlite.ui.component.Gap2
 import lt.agmis.spedlite.ui.component.Gap3
 import lt.agmis.spedlite.ui.component.Gap5
-import lt.agmis.spedlite.ui.component.Gap6
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIconButton
@@ -53,10 +55,25 @@ import lt.agmis.spedlite.util.ExceptionMessageParser
 @Composable
 fun TaskDetailsDestination(appContainer: AppContainer, task: Task) {
     val viewModel = viewModel<TaskDetailsViewModel>(factory = TaskDetailsViewModel.factory(appContainer))
+    val context = LocalContext.current
     TaskDetailsScreen(
         task = task,
         toggleAppTheme = viewModel::toggleAppTheme,
-        onSettingsClick = viewModel::onSettingsClick
+        onSettingsClick = viewModel::onSettingsClick,
+        onOpenMapClick = { latitude, longitude ->
+            try {
+                val geoUri = "geo:$latitude,$longitude?q=$latitude,$longitude".toUri()
+
+                val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
+
+                // Check if there's an app that can handle this intent
+                if (mapIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(mapIntent)
+                }
+            } catch (exception: Exception) {
+                Napier.e("Failed to open map", exception)
+            }
+        }
     )
 }
 
@@ -65,7 +82,8 @@ fun TaskDetailsDestination(appContainer: AppContainer, task: Task) {
 private fun TaskDetailsScreen(
     task: Task,
     toggleAppTheme: (Boolean) -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onOpenMapClick: (String, String) -> Unit,
 ) {
     val onBack = LocalOnBackPressedDispatcherOwner.current
     SpedliteScaffold(
@@ -113,9 +131,9 @@ private fun TaskDetailsScreen(
                     Gap2()
                     SpedliteTextButton(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
-                        onClick = {}
+                        onClick = { onOpenMapClick(task.lat, task.lng) }
                     ) {
-                        Text(text = "Open map", textDecoration = TextDecoration.Underline)
+                        Text(text = stringResource(R.string.task_details_open_map), textDecoration = TextDecoration.Underline)
                     }
                 }
             }
@@ -127,7 +145,12 @@ private fun TaskDetailsScreen(
 @Composable
 private fun Preview() {
     SpedliteTheme {
-        TaskDetailsScreen(Task("", "", "", "", "", "", "", "Delivery", "", "", "", "", ""), {}, {})
+        TaskDetailsScreen(
+            Task("", "", "", "", "", "", "", "Delivery", "", "", "", "", ""),
+            {},
+            {},
+            { s, g -> }
+        )
     }
 }
 

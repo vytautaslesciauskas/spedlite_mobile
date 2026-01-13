@@ -18,4 +18,5 @@
     <string name="settings_new_password">Enter new password</string>
     <string name="settings_repeat_password">Repeat new password</string>
     <string name="settings_password_success">Your password successfully changed</string>
+    <string name="task_details_open_map">Open map</string>
 </resources>

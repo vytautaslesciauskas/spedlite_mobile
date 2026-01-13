@@ -172,7 +172,7 @@ class SpedliteApiClient(
 
     suspend fun changeTaskStatus(
         taskId: String,
-        status: Int = 1
+        status: Int
     ): StatusChangeResponse {
         return client.submitForm(
             url = "$baseUrl/changeStatus.php",
