@@ -13,11 +13,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import lt.agmis.spedlite.ui.theme.SpedliteTheme
 
 @Composable
 fun SpedliteCard(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 12.dp ),
+    contentPadding: PaddingValues = PaddingValues(horizontal = SpedliteTheme.dimen.gridSize * 3, vertical = SpedliteTheme.dimen.gridSize * 3),
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -34,7 +35,7 @@ fun SpedliteCard(
                 Box(modifier = Modifier.padding(contentPadding), content = content)
             }
         )
-    }else{
+    } else {
         Surface(
             modifier = modifier.heightIn(min = 78.dp),
             shape = RoundedCornerShape(12.dp),

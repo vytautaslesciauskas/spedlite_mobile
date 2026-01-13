@@ -35,8 +35,11 @@ import lt.agmis.spedlite.network.SpedliteApiClient
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
-import lt.agmis.spedlite.ui.component.Gap
-import lt.agmis.spedlite.ui.component.GapHalf
+import lt.agmis.spedlite.ui.component.Gap10
+import lt.agmis.spedlite.ui.component.Gap2
+import lt.agmis.spedlite.ui.component.Gap3
+import lt.agmis.spedlite.ui.component.Gap5
+import lt.agmis.spedlite.ui.component.Gap6
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIconButton
@@ -88,26 +91,26 @@ private fun TaskDetailsScreen(
         }) {
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             SpedliteCard(
-                modifier = Modifier.padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
-                contentPadding = PaddingValues(SpedliteTheme.dimen.horizontalPadding),
+                modifier = Modifier.padding(horizontal = SpedliteTheme.dimen.gridSize * 5),
+                contentPadding = PaddingValues(SpedliteTheme.dimen.gridSize * 5),
             ) {
                 Column {
                     Text(text = task.type, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 26.sp))
-                    GapHalf()
+                    Gap5()
                     HorizontalDivider()
-                    Gap()
+                    Gap5()
                     Row {
                         Text(text = "To", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
                         Text(text = task.address, modifier = Modifier.weight(0.74f))
                     }
-                    Gap(4.dp)
+                    Gap3()
                     Row {
                         Text(text = "Status", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
                         Text(text = task.status, modifier = Modifier.weight(0.74f))
                     }
-                    Gap()
+                    Gap10()
                     SpedliteButton(onClick = {}, modifier = Modifier.fillMaxWidth()) { Text("Begin") }
-                    GapHalf()
+                    Gap2()
                     SpedliteTextButton(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         onClick = {}

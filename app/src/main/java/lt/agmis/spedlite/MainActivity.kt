@@ -66,7 +66,7 @@ import lt.agmis.spedlite.navigation.Screen
 import lt.agmis.spedlite.navigation.UIText
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
-import lt.agmis.spedlite.ui.component.Gap
+import lt.agmis.spedlite.ui.component.Gap6
 import lt.agmis.spedlite.ui.destination.details.TaskDetailsDestination
 import lt.agmis.spedlite.ui.destination.login.LoginDestination
 import lt.agmis.spedlite.ui.destination.settings.SettingsDestination
@@ -288,7 +288,7 @@ private fun DialogContainer(dialogManager: DialogManager) {
             ) {
                 Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(modifier = Modifier.size(48.dp))
-                    Gap(24.dp)
+                    Gap6()
                     Text("Loading...")
                 }
             }

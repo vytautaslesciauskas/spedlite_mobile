@@ -31,13 +31,13 @@ fun SpedliteTopAppBar(
         modifier = modifier
             .statusBarsPadding()
             .fillMaxWidth()
-            .padding(horizontal = SpedliteTheme.dimen.horizontalPadding)
+            .padding(horizontal = SpedliteTheme.dimen.gap5)
             .heightIn(min = 80.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SpedliteTheme.dimen.horizontalPadding / 2)
+        verticalAlignment = Alignment.CenterVertically
     ) {
         if (navigationIcon != null) {
             navigationIcon()
+            Gap5()
         }
         Box(modifier = Modifier.weight(1f)) {
             if (title != null) {
@@ -47,7 +47,10 @@ fun SpedliteTopAppBar(
             }
         }
         if (actions != null) {
-            actions()
+            Gap5()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SpedliteTheme.dimen.gap3)) {
+                actions()
+            }
         }
     }
 }

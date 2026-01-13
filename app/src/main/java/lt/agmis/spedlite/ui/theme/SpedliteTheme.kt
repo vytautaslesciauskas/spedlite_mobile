@@ -25,9 +25,29 @@ object SpedliteTheme {
 
 @Immutable
 data class Dimensions(
-    val horizontalPadding: Dp = 20.dp,
-    val verticalPadding: Dp = 32.dp,
-)
+    val gridSize: Dp = 4.dp,
+) {
+    val gap1: Dp
+        get() = gridSize * 1
+    val gap2: Dp
+        get() = gridSize * 2
+    val gap3: Dp
+        get() = gridSize * 3
+    val gap4: Dp
+        get() = gridSize * 4
+    val gap5: Dp
+        get() = gridSize * 5
+    val gap6: Dp
+        get() = gridSize * 6
+    val gap7: Dp
+        get() = gridSize * 7
+    val gap8: Dp
+        get() = gridSize * 8
+    val gap9: Dp
+        get() = gridSize * 9
+    val gap10: Dp
+        get() = gridSize * 10
+}
 
 @Immutable
 data class Colors(

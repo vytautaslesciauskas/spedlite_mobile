@@ -1,17 +1,14 @@
 package lt.agmis.spedlite.ui.destination.login
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,8 +37,9 @@ import lt.agmis.spedlite.util.runCatchingCoroutine
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
-import lt.agmis.spedlite.ui.component.Gap
-import lt.agmis.spedlite.ui.component.GapHalf
+import lt.agmis.spedlite.ui.component.Gap10
+import lt.agmis.spedlite.ui.component.Gap3
+import lt.agmis.spedlite.ui.component.Gap5
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTextField
@@ -77,10 +73,10 @@ private fun LoginScreen(
                 painter = painterResource(R.drawable.login_visual),
                 contentDescription = null,
             )
-            Gap()
+            Gap5()
             Text(text = stringResource(R.string.login_welcome), style = MaterialTheme.typography.headlineLarge)
             Text(text = stringResource(R.string.login_body))
-            Gap()
+            Gap10()
             var username by remember { mutableStateOf(if (BuildConfig.DEBUG) "vytautas" else "") }
             var password by remember { mutableStateOf(if (BuildConfig.DEBUG) "1" else "") }
             SpedliteTextField(
@@ -88,35 +84,34 @@ private fun LoginScreen(
                 onValueChange = { username = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+                    .padding(horizontal = SpedliteTheme.dimen.gap5),
                 label = {
                     Text(text = stringResource(R.string.login_username))
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-            GapHalf()
+            Gap3()
             SpedliteTextFieldPassword(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+                    .padding(horizontal = SpedliteTheme.dimen.gap5),
                 label = {
                     Text(text = stringResource(R.string.login_password))
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             )
-
-            GapHalf()
+            Gap10()
             SpedliteButton(
                 onClick = {
                     onLoginClick(username, password)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(SpedliteTheme.dimen.horizontalPadding),
+                    .padding(SpedliteTheme.dimen.gap5),
                 enabled = username.isNotBlank() && password.isNotBlank()
             ) {
                 Text(text = stringResource(R.string.login_cta))

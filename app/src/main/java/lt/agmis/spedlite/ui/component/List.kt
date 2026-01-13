@@ -2,8 +2,6 @@ package lt.agmis.spedlite.ui.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -25,7 +23,7 @@ fun SpedliteListItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (leadingContent != null) {
                 leadingContent.invoke()
-                Gap()
+                Gap5()
             }
             Column(modifier = Modifier.weight(1f)) {
                 CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleMedium) {
@@ -38,7 +36,7 @@ fun SpedliteListItem(
                 }
             }
             if (trailingContent != null) {
-                Gap()
+                Gap5()
                 trailingContent.invoke()
             }
         }

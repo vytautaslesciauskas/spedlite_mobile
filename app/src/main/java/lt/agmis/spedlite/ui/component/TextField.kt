@@ -92,11 +92,11 @@ fun SpedliteTextField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .border(0.5.dp, borderColor, RoundedCornerShape(12.dp))
-                        .padding(horizontal = SpedliteTheme.dimen.horizontalPadding, vertical = 16.dp)
+                        .padding(horizontal = SpedliteTheme.dimen.gridSize * 5, vertical = SpedliteTheme.dimen.gridSize * 4)
                 ) {
                     if (prefix != null) {
                         prefix()
-                        Gap()
+                        Gap2()
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         if (value.isEmpty()) {
@@ -105,7 +105,7 @@ fun SpedliteTextField(
                         innerTextField()
                     }
                     if (suffix != null) {
-                        Gap()
+                        Gap2()
                         suffix()
                     }
                 }

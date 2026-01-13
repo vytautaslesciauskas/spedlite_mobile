@@ -44,8 +44,9 @@ import lt.agmis.spedlite.network.SpedliteApiClient
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
-import lt.agmis.spedlite.ui.component.Gap
-import lt.agmis.spedlite.ui.component.GapHalf
+import lt.agmis.spedlite.ui.component.Gap2
+import lt.agmis.spedlite.ui.component.Gap3
+import lt.agmis.spedlite.ui.component.Gap5
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIcon
@@ -113,7 +114,7 @@ private fun SettingsScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+                .padding(horizontal = SpedliteTheme.dimen.gap5),
             leadingContent = {
                 SpedliteIcon(R.drawable.ic_lock)
             },
@@ -126,59 +127,62 @@ private fun SettingsScreen(
                 )
             }
         )
-        Gap(SpedliteTheme.dimen.verticalPadding / 4)
+        Gap2()
         AnimatedVisibility(changePasswordExpanded) {
-            Column(
+            SpedliteCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = SpedliteTheme.dimen.gridSize * 5)
+                    .padding(bottom = SpedliteTheme.dimen.gridSize * 5)
             ) {
-                Gap(SpedliteTheme.dimen.verticalPadding / 4)
-                SpedliteTextFieldPassword(
-                    value = oldPassword,
-                    onValueChange = onOldPasswordChange,
-                    label = { Text(text = stringResource(R.string.settings_current_password)) },
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                )
-                Gap(SpedliteTheme.dimen.verticalPadding / 4)
-                SpedliteTextFieldPassword(
-                    value = newPassword,
-                    onValueChange = onNewPasswordChange,
-                    label = { Text(text = stringResource(R.string.settings_new_password)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                )
-                Gap(SpedliteTheme.dimen.verticalPadding / 4)
-                SpedliteTextFieldPassword(
-                    value = newPasswordRepeat,
-                    onValueChange = onNewPasswordRepeatChange,
-                    label = { Text(text = stringResource(R.string.settings_repeat_password)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-                )
-                Gap(SpedliteTheme.dimen.verticalPadding / 2)
-                SpedliteButton(
-                    onClick = onChangePasswordClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = oldPassword.isNotBlank() && newPassword.isNotBlank() && newPasswordRepeat.isNotBlank() && (newPassword == newPasswordRepeat)
-                ) { Text("Save new password") }
-                Gap(SpedliteTheme.dimen.verticalPadding / 2)
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    SpedliteTextFieldPassword(
+                        value = oldPassword,
+                        onValueChange = onOldPasswordChange,
+                        label = { Text(text = stringResource(R.string.settings_current_password)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+                    Gap3()
+                    SpedliteTextFieldPassword(
+                        value = newPassword,
+                        onValueChange = onNewPasswordChange,
+                        label = { Text(text = stringResource(R.string.settings_new_password)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+                    Gap3()
+                    SpedliteTextFieldPassword(
+                        value = newPasswordRepeat,
+                        onValueChange = onNewPasswordRepeatChange,
+                        label = { Text(text = stringResource(R.string.settings_repeat_password)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                    )
+                    Gap5()
+                    SpedliteButton(
+                        onClick = onChangePasswordClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = oldPassword.isNotBlank() && newPassword.isNotBlank() && newPasswordRepeat.isNotBlank() && (newPassword == newPasswordRepeat)
+                    ) { Text("Save new password") }
 
-                AnimatedVisibility(passwordChangedSuccessfully) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = SpedliteTheme.dimen.verticalPadding / 2)
-                    ) {
-                        Image(painter = painterResource(R.drawable.ic_success), contentDescription = null)
-                        GapHalf()
-                        Text(text = stringResource(R.string.settings_password_success), style = MaterialTheme.typography.bodyMedium, color = SpedliteTheme.colorScheme.success)
+                    AnimatedVisibility(passwordChangedSuccessfully) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = SpedliteTheme.dimen.gridSize * 5, bottom = SpedliteTheme.dimen.gridSize * 2)
+                        ) {
+                            Image(painter = painterResource(R.drawable.ic_success), contentDescription = null)
+                            Gap3()
+                            Text(text = stringResource(R.string.settings_password_success), style = MaterialTheme.typography.bodyMedium, color = SpedliteTheme.colorScheme.success)
+                        }
                     }
                 }
             }
@@ -193,7 +197,7 @@ private fun SettingsScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+                .padding(horizontal = SpedliteTheme.dimen.gap5),
             leadingContent = {
                 SpedliteIcon(R.drawable.ic_shield)
             },
@@ -206,19 +210,15 @@ private fun SettingsScreen(
                 )
             }
         )
-        Gap(SpedliteTheme.dimen.verticalPadding / 4)
+        Gap2()
         AnimatedVisibility(privacyExpanded) {
-            Column(
+            SpedliteCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = SpedliteTheme.dimen.gridSize * 5)
+                    .padding(bottom = SpedliteTheme.dimen.gridSize * 5)
             ) {
-                Gap(SpedliteTheme.dimen.verticalPadding / 4)
-                SpedliteCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = AnnotatedString.fromHtml(privacyPolicyHtml), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Light)
-                }
-                Gap(SpedliteTheme.dimen.verticalPadding / 2)
+                Text(text = AnnotatedString.fromHtml(privacyPolicyHtml), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Light)
             }
         }
         SpedliteListItem(
@@ -228,7 +228,7 @@ private fun SettingsScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+                .padding(horizontal = SpedliteTheme.dimen.gap5),
             leadingContent = {
                 SpedliteIcon(R.drawable.ic_logout, contentColor = MaterialTheme.colorScheme.error)
             }

@@ -83,7 +83,8 @@ private val DarkColorScheme = darkColorScheme(
     error = error,
     onError = Color.White,
     surfaceVariant = Color(0xFF55616A),
-    onSurfaceVariant = Color(0xFFC0C4C9)
+    onSurfaceVariant = Color(0xFFC0C4C9),
+    outlineVariant = Color(0xFF55616A)
 )
 
 private val SpedliteLightColorScheme = Colors(
@@ -104,7 +105,8 @@ private val LightColorScheme = lightColorScheme(
     error = error,
     onError = Color.White,
     surfaceVariant = Color(0xFFF1F6FB),
-    onSurfaceVariant = Color(0xFF9D9D9D)
+    onSurfaceVariant = Color(0xFF9D9D9D),
+    outlineVariant = Color(0xFFEBF2F8)
 )
 
 val Typography = Typography(

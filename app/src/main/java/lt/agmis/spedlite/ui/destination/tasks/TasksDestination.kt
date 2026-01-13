@@ -40,9 +40,7 @@ import lt.agmis.spedlite.network.SpedliteApiClient
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
-import lt.agmis.spedlite.ui.component.Gap
 import lt.agmis.spedlite.ui.component.SpedliteButton
-import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIcon
 import lt.agmis.spedlite.ui.component.SpedliteIconButtonRound
 import lt.agmis.spedlite.ui.component.SpedliteListItem
@@ -80,7 +78,7 @@ private fun TasksScreen(
     PullToRefreshBox(isRefreshing = isLoading, onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
         SpedliteScaffold(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(SpedliteTheme.dimen.verticalPadding / 4),
+            verticalArrangement = Arrangement.spacedBy(SpedliteTheme.dimen.gridSize * 2),
             topBar = {
                 SpedliteTopAppBar(actions = {
                     DarkModeSwitch(modifier = Modifier, onCheckedChange = toggleAppTheme)
@@ -101,7 +99,9 @@ private fun TaskItem(task: Task, onClick: () -> Unit) {
         headlineContent = {
             Text(text = task.type)
         },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = SpedliteTheme.dimen.horizontalPadding),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = SpedliteTheme.dimen.gap5),
         supportingContent = {
             Text(text = task.visited)
         },
