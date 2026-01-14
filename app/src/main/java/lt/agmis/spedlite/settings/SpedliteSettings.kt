@@ -34,4 +34,12 @@ class SpedliteSettings(context: Context) {
         ).apply()
     }
 
+    fun setToken(token: String?) {
+        sharedPreferences.edit().putString("token", token).apply()
+    }
+
+    fun getToken(): String? {
+        return sharedPreferences.getString("token", null)
+    }
+
 }

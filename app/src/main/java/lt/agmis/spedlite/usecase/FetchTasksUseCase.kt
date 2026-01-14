@@ -1,4 +1,4 @@
-package lt.agmis.spedlite.ui.destination.tasks
+package lt.agmis.spedlite.usecase
 
 import io.github.aakira.napier.Napier
 import lt.agmis.spedlite.model.Task

@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -253,7 +254,12 @@ private fun DialogContainer(dialogManager: DialogManager) {
                         is UIText.RawString -> confirmDialog.message.value
                         is UIText.Resource -> stringResource(confirmDialog.message.resId)
                     }
-                    Text(text = text, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 26.sp))
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 26.sp),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                     Gap6()
                     Row {
                         SpedliteButtonError(onClick = {

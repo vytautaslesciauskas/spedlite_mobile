@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Spedlite</string>
     <string name="common_yes">Yes</string>
+    <string name="common_no">No</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_ok">Ok</string>
     <string name="login_welcome">Welcome!</string>
@@ -24,4 +25,12 @@
     <string name="common_task_begin">Begin</string>
     <string name="common_task_finish">Finish</string>
     <string name="common_task_restart">Restart</string>
+    <string name="task_type_pickup">Pickup</string>
+    <string name="task_type_delivery">Delivery</string>
+    <string name="task_type_customs">Customs</string>
+    <string name="task_type_tech_inspection">Tech Inspection</string>
+    <string name="task_type_refuel">Refuel</string>
+    <string name="task_type_rest">Rest</string>
+    <string name="task_details_title_status">Status</string>
+    <string name="task_details_title_to">To</string>
 </resources>

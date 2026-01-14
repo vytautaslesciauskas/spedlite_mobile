@@ -115,6 +115,11 @@ sealed interface UIText {
         fun of(@StringRes resId: Int, arguments: Array<Any>): UIText {
             return Resource(resId, arguments)
         }
-
     }
 }
+
+
+fun String.toUIText(): UIText = UIText.RawString(this)
+fun Int.toUIText(): UIText = UIText.Resource(this, arrayOf())
+
+fun Int.toUIText(vararg arguments: Any): UIText = UIText.Resource(this, arrayOf(*arguments))

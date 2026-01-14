@@ -58,6 +58,7 @@ import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTextFieldPassword
 import lt.agmis.spedlite.ui.component.SpedliteTopAppBar
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
+import lt.agmis.spedlite.usecase.LogoutUseCase
 import lt.agmis.spedlite.util.ExceptionMessageParser
 import lt.agmis.spedlite.util.runCatchingCoroutine
 
@@ -274,7 +275,8 @@ class SettingsViewModel(
     private val dialogManager: DialogManager,
     private val settings: SpedliteSettings,
     private val apiClient: SpedliteApiClient,
-    private val exceptionMessageParser: ExceptionMessageParser
+    private val exceptionMessageParser: ExceptionMessageParser,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     companion object {
@@ -287,6 +289,7 @@ class SettingsViewModel(
                     appContainer.settings,
                     appContainer.apiClient,
                     appContainer.exceptionMessageParser,
+                    appContainer.logoutUseCase,
                 )
             }
         }
@@ -320,9 +323,7 @@ class SettingsViewModel(
     fun onLogoutClick() {
         dialogManager.showConfirmDialog(
             ConfirmDialog(message = R.string.settings_logout_confirm, onConfirm = {
-                LocationService.stop(application)
-                apiClient.clearToken()
-                appNavigator.setRoot(Screen.Login())
+                logout()
             })
         )
     }
@@ -340,6 +341,22 @@ class SettingsViewModel(
             }.onFailure {
                 dialogManager.showInfoDialog(InfoDialog(exceptionMessageParser.parseMessageOrDefault(it)))
             }
+        }
+    }
+
+    private fun logout() {
+        viewModelScope.launch {
+            dialogManager.showProgressDialog()
+            val result = logoutUseCase.logout()
+            dialogManager.dismissProgressDialog()
+            result.onSuccess {
+                LocationService.stop(application)
+                appNavigator.setRoot(Screen.Login())
+            }
+                .onFailure {
+                    dialogManager.showInfoDialog(InfoDialog(exceptionMessageParser.parseMessageOrDefault(it)))
+                }
+
         }
     }
 

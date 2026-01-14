@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 import lt.agmis.spedlite.BuildConfig
 import lt.agmis.spedlite.Event
 import lt.agmis.spedlite.EventDispatcher
+import lt.agmis.spedlite.settings.SpedliteSettings
 import java.io.IOException
 
 @Serializable
@@ -42,19 +43,20 @@ data class TasksResponse(
 
 @Serializable
 data class TaskDto(
-    val id: String,
-    val cid: String,
-    val deviceId: String,
-    val licence: String,
+    val id: Long,
+//    val cid: String,
+//    val deviceId: String,
+//    val licence: String,
     val address: String,
-    val lat: String,
-    val lng: String,
-    val type: String,         // LOADING / UNLOADING etc.
-    val queue: String,
-    val visited: String,      // timestamp as string (can be negative)
-    val client: String,
-    val con_id: String,
-    val status: String        // "0" / "1" etc.
+    val lat: Double,
+    val lng: Double,
+    val type: String,
+//    val queue: Int,
+    val visited: Long,
+//    val client: String,
+//    val con_id: String,
+    val status: Int,
+    val country: String? = null
 )
 
 @Serializable
@@ -85,10 +87,12 @@ class BackendException(
 
 class SpedliteApiClient(
     private val eventDispatcher: EventDispatcher,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val spedliteSettings: SpedliteSettings
 ) {
 
-    private var token: String? = null
+    private val token: String?
+        get() = spedliteSettings.getToken()
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -157,28 +161,29 @@ class SpedliteApiClient(
                 append("password", password)
             }
         ).body<LoginResponse>()
-        token = response.token
         return response
     }
 
     suspend fun getTasks(): TasksResponse {
+        val token = token ?: throw RuntimeException("Token is null")
         return client.submitForm(
             url = "$baseUrl/getTasks.php",
             formParameters = parameters {
-                token?.let { append("token", it) }
+                append("token", token)
             }
         ).body()
     }
 
     suspend fun changeTaskStatus(
-        taskId: String,
+        taskId: Long,
         status: Int
     ): StatusChangeResponse {
+        val token = token ?: throw RuntimeException("Token is null")
         return client.submitForm(
             url = "$baseUrl/changeStatus.php",
             formParameters = parameters {
-                token?.let { append("token", it) }
-                append("task_id", taskId)
+                append("token", token)
+                append("task_id", taskId.toString())
                 append("status", status.toString())
             }
         ).body()
@@ -189,10 +194,11 @@ class SpedliteApiClient(
         latitude: Double,
         longitude: Double
     ): LocationUpdateResponse {
+        val token = token ?: throw RuntimeException("Token is null")
         return client.submitForm(
             url = "$baseUrl/updateTruckLocation.php",
             formParameters = parameters {
-                token?.let { append("token", it) }
+                append("token", token)
                 append("lat", latitude.toString())
                 append("lng", longitude.toString())
             }
@@ -204,10 +210,11 @@ class SpedliteApiClient(
         newPassword: String,
         newPasswordConfirm: String = newPassword
     ): ChangePasswordResponse {
-        val response =  client.submitForm(
+        val token = token ?: throw RuntimeException("Token is null")
+        val response = client.submitForm(
             url = "$baseUrl/auth_change.php",
             formParameters = parameters {
-                token?.let { append("token", it) }
+                append("token", token)
                 append("old_password", oldPassword)
                 append("new_password", newPassword)
                 append("new_password_confirm", newPasswordConfirm)
@@ -216,8 +223,13 @@ class SpedliteApiClient(
         return response
     }
 
-    fun clearToken() {
-        token = null
+    suspend fun logout() {
+        val token = token ?: throw RuntimeException("Token is null")
+        client.submitForm(
+            url = "$baseUrl/logout.php",
+            formParameters = parameters {
+                append("token", token)
+            }
+        )
     }
-
 }

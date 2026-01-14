@@ -8,12 +8,16 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,20 +25,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 import lt.agmis.spedlite.R
+import lt.agmis.spedlite.SampleData
 import lt.agmis.spedlite.di.AppContainer
 import lt.agmis.spedlite.model.Task
+import lt.agmis.spedlite.model.TaskStatus
+import lt.agmis.spedlite.model.toStringRes
 import lt.agmis.spedlite.navigation.AppNavigator
+import lt.agmis.spedlite.navigation.ConfirmDialog
 import lt.agmis.spedlite.navigation.DialogManager
+import lt.agmis.spedlite.navigation.InfoDialog
 import lt.agmis.spedlite.navigation.Screen
-import lt.agmis.spedlite.network.SpedliteApiClient
+import lt.agmis.spedlite.navigation.toUIText
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
@@ -42,22 +54,23 @@ import lt.agmis.spedlite.ui.component.Gap10
 import lt.agmis.spedlite.ui.component.Gap2
 import lt.agmis.spedlite.ui.component.Gap3
 import lt.agmis.spedlite.ui.component.Gap5
-import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIconButton
 import lt.agmis.spedlite.ui.component.SpedliteIconButtonRound
 import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTextButton
 import lt.agmis.spedlite.ui.component.SpedliteTopAppBar
+import lt.agmis.spedlite.ui.destination.tasks.ChangeTaskStatusButton
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
+import lt.agmis.spedlite.usecase.ChangeTaskStatusUseCase
 import lt.agmis.spedlite.util.ExceptionMessageParser
 
 @Composable
 fun TaskDetailsDestination(appContainer: AppContainer, task: Task) {
-    val viewModel = viewModel<TaskDetailsViewModel>(factory = TaskDetailsViewModel.factory(appContainer))
+    val viewModel = viewModel<TaskDetailsViewModel>(factory = TaskDetailsViewModel.factory(appContainer, task))
     val context = LocalContext.current
     TaskDetailsScreen(
-        task = task,
+        task = viewModel.task,
         toggleAppTheme = viewModel::toggleAppTheme,
         onSettingsClick = viewModel::onSettingsClick,
         onOpenMapClick = { latitude, longitude ->
@@ -73,7 +86,8 @@ fun TaskDetailsDestination(appContainer: AppContainer, task: Task) {
             } catch (exception: Exception) {
                 Napier.e("Failed to open map", exception)
             }
-        }
+        },
+        onChangeStatusClick = viewModel::onChangeStatusClick
     )
 }
 
@@ -83,7 +97,8 @@ private fun TaskDetailsScreen(
     task: Task,
     toggleAppTheme: (Boolean) -> Unit,
     onSettingsClick: () -> Unit,
-    onOpenMapClick: (String, String) -> Unit,
+    onOpenMapClick: (Double, Double) -> Unit,
+    onChangeStatusClick: (Task) -> Unit
 ) {
 
     SpedliteScaffold(
@@ -114,21 +129,44 @@ private fun TaskDetailsScreen(
                 contentPadding = PaddingValues(SpedliteTheme.dimen.gridSize * 5),
             ) {
                 Column {
-                    Text(text = task.type, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 26.sp))
+                    val taskTypeName = task.type.toStringRes()?.let { stringResource(it) } ?: task.typeRaw
+                    Text(text = taskTypeName, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 26.sp))
                     Gap5()
                     HorizontalDivider()
                     Gap5()
-                    Row {
-                        Text(text = "To", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
-                        Text(text = task.address, modifier = Modifier.weight(0.74f))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = stringResource(R.string.task_details_title_to), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
+                        Row(modifier = Modifier.weight(0.74f), verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                                val flagUnicodeEmoji = task.country?.let { countryCodeToFlagEmoji(it) }
+                                if (flagUnicodeEmoji == null) {
+                                    Icon(painter = painterResource(R.drawable.ic_anywhere), contentDescription = null)
+                                } else {
+                                    Text(text = flagUnicodeEmoji, fontSize = 24.sp)
+                                }
+                            }
+                            Gap3()
+                            Text(text = task.address)
+                        }
                     }
                     Gap3()
-                    Row {
-                        Text(text = "Status", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
-                        Text(text = task.status, modifier = Modifier.weight(0.74f))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = stringResource(R.string.task_details_title_status), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
+                        val statusText = when (task.status) {
+                            TaskStatus.Pending -> "Created on ${task.dateTime}"
+                            TaskStatus.InProgress -> "Started on ${task.dateTime}"
+                            TaskStatus.Finished -> "Finished on ${task.dateTime}"
+                            TaskStatus.Aborted -> "Aborted on ${task.dateTime}"
+                            TaskStatus.Unknown -> "Unknown on ${task.dateTime}"
+                        }
+                        Row(modifier = Modifier.weight(0.74f), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(painter = painterResource(R.drawable.ic_dot), contentDescription = null, tint = SpedliteTheme.colorScheme.success)
+                            Gap3()
+                            Text(text = statusText, modifier = Modifier.weight(0.74f))
+                        }
                     }
                     Gap10()
-                    SpedliteButton(onClick = {}, modifier = Modifier.fillMaxWidth()) { Text("Begin") }
+                    ChangeTaskStatusButton(task.status, { onChangeStatusClick(task) }, modifier = Modifier.fillMaxWidth())
                     Gap2()
                     SpedliteTextButton(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -142,40 +180,59 @@ private fun TaskDetailsScreen(
     }
 }
 
+private fun countryCodeToFlagEmoji(countryCode: String): String? {
+    if (countryCode.length != 2) return null
+
+    val upperCode = countryCode.uppercase()
+    if (!upperCode.all { it in 'A'..'Z' }) return null
+
+    val firstChar = 0x1F1E6 + (upperCode[0] - 'A')
+    val secondChar = 0x1F1E6 + (upperCode[1] - 'A')
+
+    return String(intArrayOf(firstChar, secondChar), 0, 2)
+}
+
 @PreviewLightDark
 @Composable
 private fun Preview() {
     SpedliteTheme {
         TaskDetailsScreen(
-            Task("", "", "", "", "", "", "", "Delivery", "", "", "", "", ""),
+            SampleData.singleTask,
             {},
             {},
-            { s, g -> }
+            { s, g -> },
+            {}
         )
     }
 }
 
 class TaskDetailsViewModel(
+    task: Task,
     private val appNavigator: AppNavigator,
     private val dialogManager: DialogManager,
     private val settings: SpedliteSettings,
-    private val apiClient: SpedliteApiClient,
-    private val exceptionMessageParser: ExceptionMessageParser
+    private val exceptionMessageParser: ExceptionMessageParser,
+    private val changeTaskStatusUseCase: ChangeTaskStatusUseCase,
+    private val getString: (Int) -> String,
 ) : ViewModel() {
 
     companion object {
-        fun factory(appContainer: AppContainer) = viewModelFactory {
+        fun factory(appContainer: AppContainer, task: Task) = viewModelFactory {
             initializer<TaskDetailsViewModel> {
                 TaskDetailsViewModel(
+                    task,
                     appContainer.appNavigator,
                     appContainer.dialogManager,
                     appContainer.settings,
-                    appContainer.apiClient,
                     appContainer.exceptionMessageParser,
+                    appContainer.changeTaskStatusUseCase,
+                    { appContainer.application.getString(it) },
                 )
             }
         }
     }
+
+    var task by mutableStateOf(task)
 
     fun toggleAppTheme(isLightMode: Boolean) {
         settings.setAppTheme(if (isLightMode) AppTheme.Light else AppTheme.Dark)
@@ -184,4 +241,29 @@ class TaskDetailsViewModel(
     fun onSettingsClick() {
         appNavigator.navigate(Screen.Settings())
     }
+
+    fun onChangeStatusClick(task: Task) {
+        dialogManager.showConfirmDialog(
+            ConfirmDialog(
+                message = task.getTaskMessageForChangingStatus(getString).toUIText(),
+                positiveButtonText = R.string.common_yes.toUIText(),
+                cancelButtonText = R.string.common_no.toUIText(),
+                onConfirm = { changeStatus(task) }
+            )
+        )
+    }
+
+    private fun changeStatus(task: Task) {
+        viewModelScope.launch {
+            dialogManager.showProgressDialog()
+            val result = changeTaskStatusUseCase.changeStatus(task.id, task.status)
+            dialogManager.dismissProgressDialog()
+            result.onSuccess { response ->
+                this@TaskDetailsViewModel.task = task.copy(statusRaw = response.status)
+            }.onFailure {
+                dialogManager.showInfoDialog(InfoDialog(exceptionMessageParser.parseMessageOrDefault(it)))
+            }
+        }
+    }
+
 }

@@ -2,37 +2,57 @@ package lt.agmis.spedlite.model
 
 import kotlinx.serialization.Serializable
 import lt.agmis.spedlite.network.TaskDto
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
+private val dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MMM-dd HH:mm")
 
 @Serializable
 data class Task(
-    val id: String,
-    val cid: String,
-    val deviceId: String,
-    val licence: String,
+    val id: Long,
     val address: String,
-    val lat: String,
-    val lng: String,
-    val type: String,         // LOADING / UNLOADING etc.
-    val queue: String,
-    val visited: String,      // timestamp as string (can be negative)
-    val client: String,
-    val con_id: String,
-    val status: String        // "0" / "1" etc.
+    val lat: Double,
+    val lng: Double,
+    val typeRaw: String,
+    val visited: Long,
+    val statusRaw: Int,
+    val country: String? = null
 ) {
     constructor(dto: TaskDto) : this(
         id = dto.id,
-        cid = dto.cid,
-        deviceId = dto.deviceId,
-        licence = dto.licence,
         address = dto.address,
         lat = dto.lat,
         lng = dto.lng,
-        type = dto.type,
-        queue = dto.queue,
+        typeRaw = dto.type,
         visited = dto.visited,
-        client = dto.client,
-        con_id = dto.con_id,
-        status = dto.status
+        statusRaw = dto.status,
+        country = dto.country
     )
+
+    val status: TaskStatus
+        get() = TaskStatus.parse(statusRaw)
+
+    val type: TaskType
+        get() = TaskType.parse(typeRaw)
+
+    val dateTime: String by lazy {
+        try {
+            val instant = Instant.ofEpochMilli(visited)
+            instant.atZone(ZoneId.systemDefault()).format(dateTimeFormat)
+        } catch (exception: Exception) {
+            visited.toString()
+        }
+    }
+
+    fun getTaskMessageForChangingStatus(getString: (Int) -> String): String {
+        val taskTypeName = type.toStringRes()?.let { getString(it) } ?: typeRaw
+        return when (status) {
+            TaskStatus.Pending -> "Do you want to start task?\n${taskTypeName}"
+            TaskStatus.InProgress -> "Do you want to finish task\n${taskTypeName}"
+            TaskStatus.Finished -> "Do you want to restart task?\n${taskTypeName}"
+            TaskStatus.Aborted -> "Do you want to restart task?\n${taskTypeName}"
+            TaskStatus.Unknown -> "Do you want to restart task?\n${taskTypeName}"
+        }
+    }
 }

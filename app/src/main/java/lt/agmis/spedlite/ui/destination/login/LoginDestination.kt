@@ -33,7 +33,6 @@ import lt.agmis.spedlite.navigation.DialogManager
 import lt.agmis.spedlite.navigation.InfoDialog
 import lt.agmis.spedlite.navigation.Screen
 import lt.agmis.spedlite.network.SpedliteApiClient
-import lt.agmis.spedlite.util.runCatchingCoroutine
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
@@ -47,6 +46,7 @@ import lt.agmis.spedlite.ui.component.SpedliteTextFieldPassword
 import lt.agmis.spedlite.ui.component.SpedliteTopAppBar
 import lt.agmis.spedlite.ui.theme.PreviewDayNight
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
+import lt.agmis.spedlite.usecase.LoginUseCase
 import lt.agmis.spedlite.util.ExceptionMessageParser
 
 @Composable
@@ -138,7 +138,8 @@ class LoginViewModel(
     private val dialogManager: DialogManager,
     private val settings: SpedliteSettings,
     private val apiClient: SpedliteApiClient,
-    private val exceptionMessageParser: ExceptionMessageParser
+    private val exceptionMessageParser: ExceptionMessageParser,
+    private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
     companion object {
@@ -150,6 +151,7 @@ class LoginViewModel(
                     appContainer.settings,
                     appContainer.apiClient,
                     appContainer.exceptionMessageParser,
+                    appContainer.loginUseCase,
                 )
             }
         }
@@ -158,9 +160,7 @@ class LoginViewModel(
     fun onLoginClick(username: String, password: String) {
         viewModelScope.launch {
             dialogManager.showProgressDialog()
-            val result = runCatchingCoroutine {
-                apiClient.login(username, password)
-            }
+            val result = loginUseCase.login(username, password)
             dialogManager.dismissProgressDialog()
             result.onSuccess {
                 appNavigator.setRoot(Screen.Tasks())
