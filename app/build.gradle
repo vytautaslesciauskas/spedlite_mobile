@@ -28,10 +28,18 @@ android {
 //            arg("room.generateKotlin", "true")
 //        }
     }
-
+    signingConfigs {
+        release {
+            storeFile file("../keystore/spedlite-keystore.jks")
+            storePassword "lkh9#sdFSAKHF"
+            keyAlias "release"
+            keyPassword "lkh9#sdFSAKHF"
+        }
+    }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
