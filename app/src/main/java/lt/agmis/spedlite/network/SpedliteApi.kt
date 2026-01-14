@@ -85,11 +85,25 @@ class BackendException(
 ) : RuntimeException("Code: $code\nMessage: ${errorJson}\nAt path: $path")
 
 
+interface SpedliteApi {
+    suspend fun login(username: String, password: String): LoginResponse
+    suspend fun getTasks(): TasksResponse
+    suspend fun changeTaskStatus(taskId: Long, status: Int): StatusChangeResponse
+    suspend fun updateLocation(latitude: Double, longitude: Double): LocationUpdateResponse
+    suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String,
+        newPasswordConfirm: String = newPassword
+    ): ChangePasswordResponse
+
+    suspend fun logout()
+}
+
 class SpedliteApiClient(
     private val eventDispatcher: EventDispatcher,
     private val baseUrl: String,
     private val spedliteSettings: SpedliteSettings
-) {
+) : SpedliteApi {
 
     private val token: String?
         get() = spedliteSettings.getToken()
@@ -153,7 +167,7 @@ class SpedliteApiClient(
         }
     }
 
-    suspend fun login(username: String, password: String): LoginResponse {
+    override suspend fun login(username: String, password: String): LoginResponse {
         val response = client.submitForm(
             url = "$baseUrl/auth.php",
             formParameters = parameters {
@@ -164,7 +178,7 @@ class SpedliteApiClient(
         return response
     }
 
-    suspend fun getTasks(): TasksResponse {
+    override suspend fun getTasks(): TasksResponse {
         val token = token ?: throw RuntimeException("Token is null")
         return client.submitForm(
             url = "$baseUrl/getTasks.php",
@@ -174,7 +188,7 @@ class SpedliteApiClient(
         ).body()
     }
 
-    suspend fun changeTaskStatus(
+    override suspend fun changeTaskStatus(
         taskId: Long,
         status: Int
     ): StatusChangeResponse {
@@ -190,7 +204,7 @@ class SpedliteApiClient(
     }
 
 
-    suspend fun updateLocation(
+    override suspend fun updateLocation(
         latitude: Double,
         longitude: Double
     ): LocationUpdateResponse {
@@ -205,10 +219,10 @@ class SpedliteApiClient(
         ).body()
     }
 
-    suspend fun changePassword(
+    override suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
-        newPasswordConfirm: String = newPassword
+        newPasswordConfirm: String
     ): ChangePasswordResponse {
         val token = token ?: throw RuntimeException("Token is null")
         val response = client.submitForm(
@@ -223,7 +237,7 @@ class SpedliteApiClient(
         return response
     }
 
-    suspend fun logout() {
+    override suspend fun logout() {
         val token = token ?: throw RuntimeException("Token is null")
         client.submitForm(
             url = "$baseUrl/logout.php",

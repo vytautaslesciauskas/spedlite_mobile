@@ -33,4 +33,7 @@
     <string name="task_type_rest">Rest</string>
     <string name="task_details_title_status">Status</string>
     <string name="task_details_title_to">To</string>
+    <string name="task_confirm_start">Do you want to start task?\n%s</string>
+    <string name="task_confirm_finish">Do you want to finish task?\n%s</string>
+    <string name="task_confirm_restart">Do you want to restart task?\n%s</string>
 </resources>

@@ -197,7 +197,7 @@ class TasksViewModel(
     private val exceptionMessageParser: ExceptionMessageParser,
     private val fetchTasksUseCase: FetchTasksUseCase,
     private val changeTaskStatusUseCase: ChangeTaskStatusUseCase,
-    private val getString: (Int) -> String
+    private val getString: (Int, Array<Any>) -> String
 ) : ViewModel() {
 
     companion object {
@@ -210,7 +210,7 @@ class TasksViewModel(
                     appContainer.exceptionMessageParser,
                     appContainer.fetchTasksUseCase,
                     appContainer.changeTaskStatusUseCase,
-                    { appContainer.application.getString(it) },
+                    { res, args -> appContainer.application.getString(res, *args) },
                 )
             }
         }

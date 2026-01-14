@@ -1,6 +1,7 @@
 package lt.agmis.spedlite.model
 
 import kotlinx.serialization.Serializable
+import lt.agmis.spedlite.R
 import lt.agmis.spedlite.network.TaskDto
 import java.time.Instant
 import java.time.ZoneId
@@ -45,14 +46,25 @@ data class Task(
         }
     }
 
-    fun getTaskMessageForChangingStatus(getString: (Int) -> String): String {
-        val taskTypeName = type.toStringRes()?.let { getString(it) } ?: typeRaw
+    fun getTaskMessageForChangingStatus(getString: (Int, Array<Any>) -> String): String {
+        val taskTypeName = type.toStringRes()?.let { getString(it, emptyArray()) } ?: typeRaw
+        val messageRes = when (status) {
+            TaskStatus.Pending -> R.string.task_confirm_start
+            TaskStatus.InProgress -> R.string.task_confirm_finish
+            TaskStatus.Finished -> R.string.task_confirm_restart
+            TaskStatus.Aborted -> R.string.task_confirm_restart
+            TaskStatus.Unknown -> R.string.task_confirm_restart
+        }
+        return getString(messageRes, arrayOf(taskTypeName))
+    }
+
+    fun getStatusText(): String {
         return when (status) {
-            TaskStatus.Pending -> "Do you want to start task?\n${taskTypeName}"
-            TaskStatus.InProgress -> "Do you want to finish task\n${taskTypeName}"
-            TaskStatus.Finished -> "Do you want to restart task?\n${taskTypeName}"
-            TaskStatus.Aborted -> "Do you want to restart task?\n${taskTypeName}"
-            TaskStatus.Unknown -> "Do you want to restart task?\n${taskTypeName}"
+            TaskStatus.Pending -> "Pending ${dateTime}"
+            TaskStatus.InProgress -> "InProgress ${dateTime}"
+            TaskStatus.Finished -> "Finished ${dateTime}"
+            TaskStatus.Aborted -> "Aborted ${dateTime}"
+            TaskStatus.Unknown -> "Unknown ${dateTime}"
         }
     }
 }

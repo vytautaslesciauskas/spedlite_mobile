@@ -42,7 +42,7 @@ import lt.agmis.spedlite.navigation.ConfirmDialog
 import lt.agmis.spedlite.navigation.DialogManager
 import lt.agmis.spedlite.navigation.InfoDialog
 import lt.agmis.spedlite.navigation.Screen
-import lt.agmis.spedlite.network.SpedliteApiClient
+import lt.agmis.spedlite.network.SpedliteApi
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
@@ -274,7 +274,7 @@ class SettingsViewModel(
     private val appNavigator: AppNavigator,
     private val dialogManager: DialogManager,
     private val settings: SpedliteSettings,
-    private val apiClient: SpedliteApiClient,
+    private val apiClient: SpedliteApi,
     private val exceptionMessageParser: ExceptionMessageParser,
     private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {

@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import lt.agmis.spedlite.App
 import lt.agmis.spedlite.AppScope
 import lt.agmis.spedlite.R
-import lt.agmis.spedlite.network.SpedliteApiClient
+import lt.agmis.spedlite.network.SpedliteApi
 import lt.agmis.spedlite.util.runCatchingCoroutine
 import java.util.concurrent.TimeUnit
 
@@ -32,7 +32,7 @@ class LocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var apiClient: SpedliteApiClient
+    private lateinit var apiClient: SpedliteApi
     private var isTracking = false
 
     companion object {

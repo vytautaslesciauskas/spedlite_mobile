@@ -39,7 +39,6 @@ import lt.agmis.spedlite.R
 import lt.agmis.spedlite.SampleData
 import lt.agmis.spedlite.di.AppContainer
 import lt.agmis.spedlite.model.Task
-import lt.agmis.spedlite.model.TaskStatus
 import lt.agmis.spedlite.model.toStringRes
 import lt.agmis.spedlite.navigation.AppNavigator
 import lt.agmis.spedlite.navigation.ConfirmDialog
@@ -152,13 +151,7 @@ private fun TaskDetailsScreen(
                     Gap3()
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = stringResource(R.string.task_details_title_status), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(0.26f))
-                        val statusText = when (task.status) {
-                            TaskStatus.Pending -> "Created on ${task.dateTime}"
-                            TaskStatus.InProgress -> "Started on ${task.dateTime}"
-                            TaskStatus.Finished -> "Finished on ${task.dateTime}"
-                            TaskStatus.Aborted -> "Aborted on ${task.dateTime}"
-                            TaskStatus.Unknown -> "Unknown on ${task.dateTime}"
-                        }
+                        val statusText = task.getStatusText()
                         Row(modifier = Modifier.weight(0.74f), verticalAlignment = Alignment.CenterVertically) {
                             Icon(painter = painterResource(R.drawable.ic_dot), contentDescription = null, tint = SpedliteTheme.colorScheme.success)
                             Gap3()
@@ -213,7 +206,7 @@ class TaskDetailsViewModel(
     private val settings: SpedliteSettings,
     private val exceptionMessageParser: ExceptionMessageParser,
     private val changeTaskStatusUseCase: ChangeTaskStatusUseCase,
-    private val getString: (Int) -> String,
+    private val getString: (Int, Array<Any>) -> String,
 ) : ViewModel() {
 
     companion object {
@@ -226,7 +219,7 @@ class TaskDetailsViewModel(
                     appContainer.settings,
                     appContainer.exceptionMessageParser,
                     appContainer.changeTaskStatusUseCase,
-                    { appContainer.application.getString(it) },
+                    { res, args -> appContainer.application.getString(res, *args) },
                 )
             }
         }
