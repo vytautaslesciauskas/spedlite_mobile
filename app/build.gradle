@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
-//    alias(libs.plugins.ksp)
 }
 kotlin {
     jvmToolchain(17)
@@ -21,12 +20,9 @@ android {
         targetSdk 36
         versionCode 1
         versionName "1.0"
+        archivesBaseName = "spedlite-$versionName-$versionCode"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-//        ksp {
-//            arg("room.schemaLocation", "$projectDir/schemas")
-//            arg("room.generateKotlin", "true")
-//        }
     }
     signingConfigs {
         release {
@@ -80,11 +76,6 @@ dependencies {
     implementation libs.androidx.lifecycle.viewmodel.navigation3.android
     implementation libs.androidx.navigation3.runtime
     implementation libs.androidx.navigation3.ui.android
-
-//    implementation libs.androidx.room.runtime
-//    implementation libs.androidx.room.ktx
-//    implementation libs.androidx.room.testing
-    //    ksp libs.androidx.room.compiler
 
     implementation libs.androidx.appcompat
     implementation libs.play.services.location
