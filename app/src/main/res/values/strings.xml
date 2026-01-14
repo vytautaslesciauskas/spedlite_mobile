@@ -21,4 +21,7 @@
     <string name="task_details_open_map">Open map</string>
     <string name="location_service_notification_title">Location Tracking</string>
     <string name="location_service_notification_text">Tracking location for tasks</string>
+    <string name="common_task_begin">Begin</string>
+    <string name="common_task_finish">Finish</string>
+    <string name="common_task_restart">Restart</string>
 </resources>

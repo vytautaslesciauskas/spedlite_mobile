@@ -14,10 +14,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.unveilIn
 import androidx.compose.animation.veilOut
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -38,6 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -54,7 +60,10 @@ import lt.agmis.spedlite.navigation.Screen
 import lt.agmis.spedlite.navigation.UIText
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
+import lt.agmis.spedlite.ui.component.Gap5
 import lt.agmis.spedlite.ui.component.Gap6
+import lt.agmis.spedlite.ui.component.SpedliteButtonError
+import lt.agmis.spedlite.ui.component.SpedliteButtonSuccess
 import lt.agmis.spedlite.ui.destination.details.TaskDetailsDestination
 import lt.agmis.spedlite.ui.destination.login.LoginDestination
 import lt.agmis.spedlite.ui.destination.settings.SettingsDestination
@@ -228,42 +237,50 @@ private fun DialogContainer(dialogManager: DialogManager) {
     }
     val confirmDialog = dialogManager.confirmDialog
     if (confirmDialog != null) {
-        AlertDialog(
+        Dialog(
             onDismissRequest = dialogManager::dismissConfirmDialog,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        dialogManager.dismissConfirmDialog()
-                        confirmDialog.onConfirm()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+            properties = DialogProperties(),
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = SpedliteTheme.dimen.gap5, vertical = SpedliteTheme.dimen.gap6),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val text = when (confirmDialog.positiveButtonText) {
-                        is UIText.RawString -> confirmDialog.positiveButtonText.value
-                        is UIText.Resource -> stringResource(confirmDialog.positiveButtonText.resId)
+                    val text = when (confirmDialog.message) {
+                        is UIText.RawString -> confirmDialog.message.value
+                        is UIText.Resource -> stringResource(confirmDialog.message.resId)
                     }
-
-                    Text(text = text)
+                    Text(text = text, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 26.sp))
+                    Gap6()
+                    Row {
+                        SpedliteButtonError(onClick = {
+                            dialogManager.dismissConfirmDialog()
+                            confirmDialog.onCancel?.invoke()
+                        }) {
+                            val text = when (confirmDialog.cancelButtonText) {
+                                is UIText.RawString -> confirmDialog.cancelButtonText.value
+                                is UIText.Resource -> stringResource(confirmDialog.cancelButtonText.resId)
+                            }
+                            Text(text = text)
+                        }
+                        Gap5()
+                        SpedliteButtonSuccess(onClick = {
+                            dialogManager.dismissConfirmDialog()
+                            confirmDialog.onConfirm()
+                        }) {
+                            val text = when (confirmDialog.positiveButtonText) {
+                                is UIText.RawString -> confirmDialog.positiveButtonText.value
+                                is UIText.Resource -> stringResource(confirmDialog.positiveButtonText.resId)
+                            }
+                            Text(text = text)
+                        }
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        dialogManager.dismissConfirmDialog()
-                        confirmDialog.onCancel?.invoke()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
-                ) { Text(text = stringResource(R.string.common_cancel)) }
-            },
-            text = {
-                val text = when (confirmDialog.message) {
-                    is UIText.RawString -> confirmDialog.message.value
-                    is UIText.Resource -> stringResource(confirmDialog.message.resId)
-                }
-                Text(text = text)
-            },
-            textContentColor = MaterialTheme.colorScheme.onSurface
-        )
+            }
+        }
     }
     if (dialogManager.progressDialog) {
         BasicAlertDialog(onDismissRequest = {}) {

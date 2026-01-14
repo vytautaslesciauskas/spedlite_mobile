@@ -85,7 +85,7 @@ private fun TaskDetailsScreen(
     onSettingsClick: () -> Unit,
     onOpenMapClick: (String, String) -> Unit,
 ) {
-    val onBack = LocalOnBackPressedDispatcherOwner.current
+
     SpedliteScaffold(
         horizontalAlignment = Alignment.CenterHorizontally,
         topBar = {
@@ -97,6 +97,7 @@ private fun TaskDetailsScreen(
                     }
                 },
                 navigationIcon = {
+                    val onBack = LocalOnBackPressedDispatcherOwner.current
                     SpedliteIconButton(onClick = {
                         onBack?.onBackPressedDispatcher?.onBackPressed()
                     }) {

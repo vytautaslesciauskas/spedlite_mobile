@@ -1,5 +1,6 @@
 package lt.agmis.spedlite.ui.destination.settings
 
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -51,6 +52,7 @@ import lt.agmis.spedlite.ui.component.Gap5
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIcon
+import lt.agmis.spedlite.ui.component.SpedliteIconButton
 import lt.agmis.spedlite.ui.component.SpedliteListItem
 import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTextFieldPassword
@@ -102,9 +104,18 @@ private fun SettingsScreen(
     SpedliteScaffold(
         horizontalAlignment = Alignment.CenterHorizontally,
         topBar = {
-            SpedliteTopAppBar(actions = {
-                DarkModeSwitch(modifier = Modifier, onCheckedChange = toggleAppTheme)
-            })
+            SpedliteTopAppBar(
+                actions = {
+                    DarkModeSwitch(modifier = Modifier, onCheckedChange = toggleAppTheme)
+                },
+                navigationIcon = {
+                    val onBack = LocalOnBackPressedDispatcherOwner.current
+                    SpedliteIconButton(onClick = {
+                        onBack?.onBackPressedDispatcher?.onBackPressed()
+                    }) {
+                        Icon(painter = painterResource(R.drawable.ic_back), contentDescription = null)
+                    }
+                })
         }) {
         var changePasswordExpanded by remember { mutableStateOf(false) }
         val changePasswordRotation by animateFloatAsState(if (changePasswordExpanded) 180f else 0f)
