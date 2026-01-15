@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
@@ -54,6 +55,7 @@ class LocationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Napier.d("Location service created")
         apiClient = (application as App).appContainer.apiClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -67,13 +69,14 @@ class LocationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Napier.d("Location service started")
         if (!hasLocationPermissions()) {
             Napier.e("Location permissions not granted. Stopping service.")
             stopSelf()
             return START_NOT_STICKY
         }
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification())
+        startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
         if (!isTracking) {
             requestLocationUpdates()
         }
@@ -148,6 +151,7 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Napier.d("Location service destroyed")
         fusedLocationClient.removeLocationUpdates(locationCallback)
         isTracking = false
     }

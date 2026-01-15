@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
+import lt.agmis.spedlite.BuildConfig
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.di.AppContainer
 import lt.agmis.spedlite.location.LocationService
@@ -48,7 +51,9 @@ import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
 import lt.agmis.spedlite.ui.component.Gap2
 import lt.agmis.spedlite.ui.component.Gap3
+import lt.agmis.spedlite.ui.component.Gap4
 import lt.agmis.spedlite.ui.component.Gap5
+import lt.agmis.spedlite.ui.component.GapWeight
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteCard
 import lt.agmis.spedlite.ui.component.SpedliteIcon
@@ -246,6 +251,14 @@ private fun SettingsScreen(
                 SpedliteIcon(R.drawable.ic_logout, contentColor = MaterialTheme.colorScheme.error)
             }
         )
+        GapWeight()
+        Text(
+            text = stringResource(R.string.common_version, "${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}"),
+            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFB1B2B4)),
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+        Gap4()
     }
 }
 

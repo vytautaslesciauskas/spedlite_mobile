@@ -61,8 +61,8 @@ data class TaskDto(
 
 @Serializable
 data class StatusChangeResponse(
-    val task_id: Long,
-    val status: Int
+    val success: Boolean,
+    val task: TaskDto
 )
 
 @Serializable

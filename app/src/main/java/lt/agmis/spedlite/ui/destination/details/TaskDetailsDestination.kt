@@ -252,7 +252,7 @@ class TaskDetailsViewModel(
             val result = changeTaskStatusUseCase.changeStatus(task.id, task.status)
             dialogManager.dismissProgressDialog()
             result.onSuccess { response ->
-                this@TaskDetailsViewModel.task = task.copy(statusRaw = response.status)
+                this@TaskDetailsViewModel.task = Task(response.task)
             }.onFailure {
                 dialogManager.showInfoDialog(InfoDialog(exceptionMessageParser.parseMessageOrDefault(it)))
             }

@@ -268,8 +268,8 @@ class TasksViewModel(
             dialogManager.dismissProgressDialog()
             result.onSuccess { response ->
                 val updatedTasks = tasks.map { oldTask ->
-                    if (oldTask.id == response.task_id) {
-                        oldTask.copy(statusRaw = response.status)
+                    if (oldTask.id == response.task.id) {
+                        Task(response.task)
                     } else {
                         oldTask
                     }
