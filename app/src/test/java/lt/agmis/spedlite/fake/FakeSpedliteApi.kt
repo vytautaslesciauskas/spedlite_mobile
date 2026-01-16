@@ -1,11 +1,11 @@
 package lt.agmis.spedlite.fake
 
-import lt.agmis.spedlite.model.TaskStatus
 import lt.agmis.spedlite.network.ChangePasswordResponse
 import lt.agmis.spedlite.network.LocationUpdateResponse
 import lt.agmis.spedlite.network.LoginResponse
 import lt.agmis.spedlite.network.SpedliteApi
 import lt.agmis.spedlite.network.StatusChangeResponse
+import lt.agmis.spedlite.network.TaskDto
 import lt.agmis.spedlite.network.TasksResponse
 
 /**
@@ -18,7 +18,7 @@ class FakeSpedliteApi : SpedliteApi {
     var lastStatus: Int? = null
 
     // Configurable responses
-    var statusChangeResponse = StatusChangeResponse(task_id = 1L, status = TaskStatus.STATUS_IN_PROGRESS)
+    var statusChangeResponse = StatusChangeResponse(true, TaskDto(1, "234", 2.3, 4.2, "ss", 1, 1, null))
 
     // Error simulation
     var shouldThrowException = false

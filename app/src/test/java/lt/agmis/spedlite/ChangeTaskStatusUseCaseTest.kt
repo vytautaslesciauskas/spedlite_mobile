@@ -3,7 +3,6 @@ package lt.agmis.spedlite
 import kotlinx.coroutines.test.runTest
 import lt.agmis.spedlite.fake.FakeSpedliteApi
 import lt.agmis.spedlite.model.TaskStatus
-import lt.agmis.spedlite.network.StatusChangeResponse
 import lt.agmis.spedlite.usecase.ChangeTaskStatusUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -71,20 +70,6 @@ class ChangeTaskStatusUseCaseTest {
         // Then
         assertTrue(result.isSuccess)
         assertEquals(TaskStatus.STATUS_PENDING, fakeApi.lastStatus)
-    }
-
-    @Test
-    fun `changeStatus returns response from api`() = runTest {
-        // Given
-        fakeApi.statusChangeResponse = StatusChangeResponse(task_id = 42L, status = TaskStatus.STATUS_FINISHED)
-
-        // When
-        val result = useCase.changeStatus(42L, TaskStatus.InProgress)
-
-        // Then
-        assertTrue(result.isSuccess)
-        assertEquals(42L, result.getOrNull()?.task_id)
-        assertEquals(TaskStatus.STATUS_FINISHED, result.getOrNull()?.status)
     }
 
     @Test

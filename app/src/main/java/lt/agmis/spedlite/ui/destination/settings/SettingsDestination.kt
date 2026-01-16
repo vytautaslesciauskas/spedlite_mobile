@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import lt.agmis.spedlite.BuildConfig
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.di.AppContainer
-import lt.agmis.spedlite.location.LocationService
 import lt.agmis.spedlite.navigation.AppNavigator
 import lt.agmis.spedlite.navigation.ConfirmDialog
 import lt.agmis.spedlite.navigation.DialogManager
@@ -283,7 +282,6 @@ private fun Preview() {
 }
 
 class SettingsViewModel(
-    private val application: android.app.Application,
     private val appNavigator: AppNavigator,
     private val dialogManager: DialogManager,
     private val settings: SpedliteSettings,
@@ -296,7 +294,6 @@ class SettingsViewModel(
         fun factory(appContainer: AppContainer) = viewModelFactory {
             initializer<SettingsViewModel> {
                 SettingsViewModel(
-                    appContainer.application,
                     appContainer.appNavigator,
                     appContainer.dialogManager,
                     appContainer.settings,
@@ -363,7 +360,6 @@ class SettingsViewModel(
             val result = logoutUseCase.logout()
             dialogManager.dismissProgressDialog()
             result.onSuccess {
-                LocationService.stop(application)
                 appNavigator.setRoot(Screen.Login())
             }
                 .onFailure {

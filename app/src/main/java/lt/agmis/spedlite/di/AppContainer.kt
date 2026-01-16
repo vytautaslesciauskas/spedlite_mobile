@@ -25,7 +25,7 @@ class AppContainer(val application: Application) {
     val exceptionMessageParser = ExceptionMessageParser(application)
 
     val loginUseCase = LoginUseCase(apiClient, settings)
-    val logoutUseCase = LogoutUseCase(apiClient, settings)
+    val logoutUseCase = LogoutUseCase(apiClient, settings, application)
     val fetchTasksUseCase = FetchTasksUseCase(apiClient)
     val changeTaskStatusUseCase = ChangeTaskStatusUseCase(apiClient)
 
