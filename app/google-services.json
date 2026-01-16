@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "242667643396",
+    "project_id": "spedlite-mobile",
+    "storage_bucket": "spedlite-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242667643396:android:e28ab4afea14311e384b51",
+        "android_client_info": {
+          "package_name": "lt.agmis.spedlite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDliSEjDnlZgkyrpMAcl1PJn0Thaa2r_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

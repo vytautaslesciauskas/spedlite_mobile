@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 kotlin {
     jvmToolchain(17)
@@ -23,6 +25,7 @@ android {
         archivesBaseName = "spedlite-$versionName-$versionCode"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "SERVER_URL", "\"https://app.spedlite.eu\"")
     }
     signingConfigs {
         release {
@@ -43,22 +46,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-
     buildFeatures {
         compose true
-    }
-    flavorDimensions "environment"
-    productFlavors {
-        stage {
-            getIsDefault().set(true)
-            dimension "environment"
-            applicationIdSuffix ".stage"
-            buildConfigField("String", "SERVER_URL", "\"https://app.spedlite.eu\"")
-        }
-//        prod {
-//            dimension "environment"
-//            buildConfigField("String", "SERVER_URL", "\"https://app.spedlite.eu\"")
-//        }
     }
 }
 
@@ -89,6 +78,8 @@ dependencies {
     implementation libs.ktor.logging
     implementation(libs.napier)
 
+    implementation platform(libs.firebase.bom)
+    implementation(libs.firebase.crashlytics)
 
     testImplementation libs.junit
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
