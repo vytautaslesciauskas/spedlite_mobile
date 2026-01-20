@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,10 +26,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -66,14 +70,77 @@ import lt.agmis.spedlite.usecase.LogoutUseCase
 import lt.agmis.spedlite.util.ExceptionMessageParser
 import lt.agmis.spedlite.util.runCatchingCoroutine
 
-private val privacyPolicyHtml = """
-                    <p>Šioje Privatumo politikoje naudojamos sąvokos ir sutrumpinimai turi šias reikšmes:</p>
-                    <li><b>Asmens duomenys</b> – bet kokia informacija, susijusi su fiziniu asmeniu, kurį galima tiesiogiai arba netiesiogiai identifikuoti (pvz. vardas, pavardė, kontaktiniai duomenys ir kt.).</li>
-                    <li><b>Asmens duomenys</b> – bet kokia informacija, susijusi su fiziniu asmeniu, kurį galima tiesiogiai arba netiesiogiai identifikuoti (pvz. vardas, pavardė, kontaktiniai duomenys ir kt.).</li>
-                    <li><b>Asmuo</b> – fizinis asmuo (duomenų subjektas), kurio duomenys yra tvarkomi (pvz. Bendrovės Klientai, asmenys, kurie kreipiasi į Bendrovę, teikdami prašymus, reikalavimus, Bendrovės interneto svetainės, savitarnos svetainės ir kitų Bendrovės valdomų puslapių/mobiliųjų programėlių naudotojai ir kt.).</li>
-                    <li><b>Duomenų tvarkymas</b> – bet kuris su Asmens duomenimis atliekamas veiksmas (pvz. rinkimas, įrašymas, saugojimas, prieigos suteikimas, perdavimas ir kt.).</li>
-                    <li><b>Paslaugos</b> – bet kokios Bendrovės teikiamos prekės ir paslaugos.</li>
-                """.trimIndent()
+private val privacyPolicyHtml = "Last updated: 2026.01.19\n" +
+        "1. Introduction\n" +
+        "JSC Spedlite (\"we\", \"our\", or \"us\") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, and protect personal information when you use our mobile application (the \"App\").\n" +
+        "The App is designed for transport companies and their drivers to receive and manage work-related tasks assigned by dispatchers or managers.\n" +
+        "By using the App, you agree to the collection and use of information in accordance with this Privacy Policy.\n" +
+        "2. Data Controller\n" +
+        "The data controller responsible for your personal data is:\n" +
+        "JSC Spedlite\n" +
+        "Email: info@spedlite.com\n" +
+        "Country of registration: Lithuania\n" +
+        "3. Information We Collect\n" +
+        "We collect only the minimum data necessary for the App to function.\n" +
+        "3.1 Personal Data\n" +
+        "Username\n" +
+        "Password (stored in encrypted form)\n" +
+        "3.2 Location Data\n" +
+        "The App collects real-time location (GPS) data to enable task-related tracking and operational coordination.\n" +
+        "Location data is collected only while the App is in use and according to device permissions.\n" +
+        "3.3 Information We Do Not Collect\n" +
+        "We do not collect:\n" +
+        "Device identifiers (IMEI, device ID)\n" +
+        "IP addresses\n" +
+        "Browser or operating system details\n" +
+        "Photos, documents, signatures\n" +
+        "Task history beyond active operational use\n" +
+        "Sensitive personal data\n" +
+        "4. Purpose of Data Processing\n" +
+        "We process personal data for the following purposes:\n" +
+        "User authentication and account management\n" +
+        "Secure login and password management\n" +
+        "Assigning and managing work-related tasks\n" +
+        "Location-based operational coordination\n" +
+        "Ensuring proper functioning and security of the App\n" +
+        "5. Legal Basis for Processing (GDPR)\n" +
+        "We process your personal data based on:\n" +
+        "Performance of a contract (Article 6(1)(b) GDPR)\n" +
+        "Legitimate interests related to service provision and operational management (Article 6(1)(f) GDPR)\n" +
+        "User consent for location data collection, which can be withdrawn at any time via device settings\n" +
+        "6. Third-Party Services\n" +
+        "We use Firebase (provided by Google LLC) as a backend and infrastructure service.\n" +
+        "Firebase may process data on our behalf strictly according to our instructions and in compliance with GDPR.\n" +
+        "No personal data is sold, shared, or transferred to clients, partners, or other third parties.\n" +
+        "For more information, please refer to Google’s Privacy Policy.\n" +
+        "7. Data Storage and Security\n" +
+        "All personal data is stored securely using industry-standard safeguards.\n" +
+        "Passwords are encrypted and cannot be viewed in plain text.\n" +
+        "Access to data is limited to authorized personnel only.\n" +
+        "8. Data Retention\n" +
+        "Personal data is stored only for as long as the user account is active.\n" +
+        "When a user account is deleted, all associated personal data is permanently removed.\n" +
+        "Data is not retained after termination of employment or service usage.\n" +
+        "9. User Rights (GDPR)\n" +
+        "As a user, you have the right to:\n" +
+        "Access your personal data\n" +
+        "Correct inaccurate or incomplete data\n" +
+        "Request deletion of your data\n" +
+        "Restrict or object to processing\n" +
+        "Withdraw consent for location tracking\n" +
+        "Data portability, where applicable\n" +
+        "To exercise your rights, please contact us at info@spedlite.com\n" +
+        "10. Account Deletion\n" +
+        "Users can request account deletion directly through the App or by contacting us.\n" +
+        "Once deleted, the account and all related personal data will be permanently removed.\n" +
+        "11. Children’s Privacy\n" +
+        "The App is not intended for children under the age of 16.\n" +
+        "We do not knowingly collect personal data from children.\n" +
+        "12. Changes to This Privacy Policy\n" +
+        "We may update this Privacy Policy from time to time.\n" +
+        "Any changes will be communicated through the App or by updating the \"Last updated\" date.\n" +
+        "13. Contact Us\n" +
+        "If you have any questions or concerns regarding this Privacy Policy or data protection, please contact us: info@spedlite.com"
 
 @Composable
 fun SettingsDestination(appContainer: AppContainer) {
@@ -235,7 +302,9 @@ private fun SettingsScreen(
                     .padding(horizontal = SpedliteTheme.dimen.gridSize * 5)
                     .padding(bottom = SpedliteTheme.dimen.gridSize * 5)
             ) {
-                Text(text = AnnotatedString.fromHtml(privacyPolicyHtml), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Light)
+                SelectionContainer {
+                    Text(text = privacyPolicyHtml, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Light)
+                }
             }
         }
         SpedliteListItem(
