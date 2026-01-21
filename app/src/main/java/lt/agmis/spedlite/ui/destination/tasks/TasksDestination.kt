@@ -26,10 +26,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.SampleData
@@ -60,6 +64,8 @@ import lt.agmis.spedlite.ui.theme.SpedliteTheme
 import lt.agmis.spedlite.usecase.ChangeTaskStatusUseCase
 import lt.agmis.spedlite.usecase.FetchTasksUseCase
 import lt.agmis.spedlite.util.ExceptionMessageParser
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @Composable
 fun TasksDestination(appContainer: AppContainer) {
@@ -70,18 +76,24 @@ fun TasksDestination(appContainer: AppContainer) {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
-        if (fineLocationGranted) {
+        val readPhoneStateGranted = permissions[Manifest.permission.READ_PHONE_STATE] ?: false
+        if (fineLocationGranted && readPhoneStateGranted) {
             LocationService.start(context)
         }
     }
-
     LaunchedEffect(Unit) {
-        viewModel.loadTasks()
         val permissions = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.READ_PHONE_STATE,
         )
         permissionsLauncher.launch(permissions.toTypedArray())
+    }
+    LifecycleResumeEffect(Unit) {
+        viewModel.onResume()
+        onPauseOrDispose {
+            viewModel.onPause()
+        }
     }
     TasksScreen(
         toggleAppTheme = viewModel::toggleAppTheme,
@@ -218,10 +230,7 @@ class TasksViewModel(
 
     val tasks = mutableStateListOf<Task>()
     var isLoading by mutableStateOf(false)
-
-    init {
-        loadTasks()
-    }
+    private var periodicTaskUpdateJob: Job? = null
 
     fun toggleAppTheme(isLightMode: Boolean) {
         settings.setAppTheme(if (isLightMode) AppTheme.Light else AppTheme.Dark)
@@ -280,5 +289,19 @@ class TasksViewModel(
                 dialogManager.showInfoDialog(InfoDialog(exceptionMessageParser.parseMessageOrDefault(it)))
             }
         }
+    }
+
+    fun onResume() {
+        periodicTaskUpdateJob?.cancel()
+        periodicTaskUpdateJob = viewModelScope.launch {
+            while (isActive) {
+                loadTasks()
+                delay(settings.getRefresh().toDuration(DurationUnit.SECONDS))
+            }
+        }
+    }
+
+    fun onPause() {
+        periodicTaskUpdateJob?.cancel()
     }
 }

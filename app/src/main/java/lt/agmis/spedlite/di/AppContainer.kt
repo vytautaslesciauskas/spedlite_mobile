@@ -26,7 +26,7 @@ class AppContainer(val application: Application) {
 
     val loginUseCase = LoginUseCase(apiClient, settings)
     val logoutUseCase = LogoutUseCase(apiClient, settings, application)
-    val fetchTasksUseCase = FetchTasksUseCase(apiClient)
+    val fetchTasksUseCase = FetchTasksUseCase(apiClient, settings)
     val changeTaskStatusUseCase = ChangeTaskStatusUseCase(apiClient)
 
 }

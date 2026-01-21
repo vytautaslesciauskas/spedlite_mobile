@@ -1,6 +1,7 @@
 package lt.agmis.spedlite.location
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,38 +10,46 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.IBinder
-import android.os.Looper
+import android.telephony.TelephonyManager
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import lt.agmis.spedlite.App
 import lt.agmis.spedlite.AppScope
 import lt.agmis.spedlite.R
 import lt.agmis.spedlite.network.SpedliteApi
+import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.util.runCatchingCoroutine
-import java.util.concurrent.TimeUnit
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class LocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
     private lateinit var apiClient: SpedliteApi
+    private lateinit var settings: SpedliteSettings
     private var isTracking = false
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     companion object {
         private const val NOTIFICATION_ID = 1234
         private const val CHANNEL_ID = "location_service_channel"
-        private val UPDATE_INTERVAL = TimeUnit.MINUTES.toMillis(1)
-        private val FASTEST_UPDATE_INTERVAL = TimeUnit.SECONDS.toMillis(30)
 
         fun start(context: Context) {
             val intent = Intent(context, LocationService::class.java)
@@ -56,21 +65,15 @@ class LocationService : Service() {
     override fun onCreate() {
         super.onCreate()
         Napier.d("Location service created")
-        apiClient = (application as App).appContainer.apiClient
+        val appContainer = (application as App).appContainer
+        apiClient = appContainer.apiClient
+        settings = appContainer.settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.lastLocation?.let { location ->
-                    updateLocation(location.latitude, location.longitude)
-                }
-            }
-        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Napier.d("Location service started")
-        if (!hasLocationPermissions()) {
+        if (!hasPermissionForLocationService(application)) {
             Napier.e("Location permissions not granted. Stopping service.")
             stopSelf()
             return START_NOT_STICKY
@@ -83,35 +86,32 @@ class LocationService : Service() {
         return START_STICKY
     }
 
-    private fun hasLocationPermissions(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
+    @SuppressLint("MissingPermission")
     private fun requestLocationUpdates() {
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, UPDATE_INTERVAL)
-            .setMinUpdateIntervalMillis(FASTEST_UPDATE_INTERVAL)
-            .build()
-
-        try {
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
+        scope.launch {
             isTracking = true
-        } catch (unlikely: SecurityException) {
-            Napier.e("Lost location permission. Could not request updates.", unlikely)
+            while (isActive) {
+                try {
+                    val location = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
+                    updateLocation(location.latitude, location.longitude)
+                    delay(settings.getRefresh().toDuration(DurationUnit.SECONDS))
+                } catch (unlikely: SecurityException) {
+                    Napier.e("Lost location permission. Could not request updates.", unlikely)
+                    break
+                } catch (exception: Exception) {
+                    Napier.e("Failed to get location", exception)
+                }
+            }
             isTracking = false
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun updateLocation(lat: Double, lng: Double) {
         AppScope.launch {
             val result = runCatchingCoroutine {
-                apiClient.updateLocation(lat, lng)
+                val networkType = getNetworkType(applicationContext)
+                apiClient.updateLocation(lat, lng, networkType.source)
             }
             result.onSuccess {
                 Napier.d("Location updated: $lat, $lng")
@@ -121,6 +121,7 @@ class LocationService : Service() {
             }
         }
     }
+
 
     private fun createNotification(): Notification {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -152,7 +153,72 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Napier.d("Location service destroyed")
-        fusedLocationClient.removeLocationUpdates(locationCallback)
         isTracking = false
+        scope.coroutineContext.cancelChildren()
     }
+}
+
+enum class NetworkType(val source: String) {
+    WIFI("wifi"),
+    CELLULAR_2G("2g"),
+    CELLULAR_3G("3g"),
+    CELLULAR_4G("4g"),
+    CELLULAR_5G("5g"),
+    ETHERNET("ethernet"),
+    NONE("none")
+}
+
+@RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+fun getNetworkType(context: Context): NetworkType {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val network = connectivityManager.activeNetwork ?: return NetworkType.NONE
+    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return NetworkType.NONE
+
+    return when {
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkType.WIFI
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkType.ETHERNET
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> getCellularGeneration(context)
+        else -> NetworkType.NONE
+    }
+}
+
+@RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+private fun getCellularGeneration(context: Context): NetworkType {
+    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+    return when (telephonyManager.dataNetworkType) {
+        TelephonyManager.NETWORK_TYPE_NR -> NetworkType.CELLULAR_5G
+
+        TelephonyManager.NETWORK_TYPE_LTE -> NetworkType.CELLULAR_4G
+
+        TelephonyManager.NETWORK_TYPE_UMTS,
+        TelephonyManager.NETWORK_TYPE_EVDO_0,
+        TelephonyManager.NETWORK_TYPE_EVDO_A,
+        TelephonyManager.NETWORK_TYPE_EVDO_B,
+        TelephonyManager.NETWORK_TYPE_HSDPA,
+        TelephonyManager.NETWORK_TYPE_HSUPA,
+        TelephonyManager.NETWORK_TYPE_HSPA,
+        TelephonyManager.NETWORK_TYPE_HSPAP,
+        TelephonyManager.NETWORK_TYPE_EHRPD -> NetworkType.CELLULAR_3G
+
+        TelephonyManager.NETWORK_TYPE_GPRS,
+        TelephonyManager.NETWORK_TYPE_EDGE,
+        TelephonyManager.NETWORK_TYPE_CDMA,
+        TelephonyManager.NETWORK_TYPE_1xRTT,
+        TelephonyManager.NETWORK_TYPE_IDEN -> NetworkType.CELLULAR_2G
+
+        else -> NetworkType.CELLULAR_4G // Default fallback for unknown cellular
+    }
+}
+
+
+private fun hasPermissionForLocationService(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_PHONE_STATE
+            ) == PackageManager.PERMISSION_GRANTED
 }

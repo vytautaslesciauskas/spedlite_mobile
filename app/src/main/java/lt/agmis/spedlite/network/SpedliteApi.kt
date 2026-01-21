@@ -38,6 +38,7 @@ data class ChangePasswordResponse(
 data class TasksResponse(
     val licence: String,
     val count: Int,
+    val refresh: String,
     val tasks: List<TaskDto>
 )
 
@@ -89,7 +90,7 @@ interface SpedliteApi {
     suspend fun login(username: String, password: String): LoginResponse
     suspend fun getTasks(): TasksResponse
     suspend fun changeTaskStatus(taskId: Long, status: Int): StatusChangeResponse
-    suspend fun updateLocation(latitude: Double, longitude: Double): LocationUpdateResponse
+    suspend fun updateLocation(latitude: Double, longitude: Double, source: String): LocationUpdateResponse
     suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
@@ -159,6 +160,7 @@ class SpedliteApiClient(
                         val exception = BackendException(statusCode, errorBody, errorJson, url)
                         if (response.status == HttpStatusCode.Unauthorized && !url.contains("auth_change")) {
                             eventDispatcher.tryEmit(Event.Unauthorized(errorBody))
+                            spedliteSettings.setToken(null)
                         }
                         throw exception
                     }
@@ -203,10 +205,10 @@ class SpedliteApiClient(
         ).body()
     }
 
-
     override suspend fun updateLocation(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        source: String
     ): LocationUpdateResponse {
         val token = token ?: throw RuntimeException("Token is null")
         return client.submitForm(
@@ -215,6 +217,7 @@ class SpedliteApiClient(
                 append("token", token)
                 append("lat", latitude.toString())
                 append("lng", longitude.toString())
+                append("source", source)
             }
         ).body()
     }
