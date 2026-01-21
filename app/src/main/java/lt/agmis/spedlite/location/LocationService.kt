@@ -111,7 +111,7 @@ class LocationService : Service() {
         AppScope.launch {
             val result = runCatchingCoroutine {
                 val networkType = getNetworkType(applicationContext)
-                apiClient.updateLocation(lat, lng, networkType.source)
+                apiClient.updateLocation(lat, lng, networkType)
             }
             result.onSuccess {
                 Napier.d("Location updated: $lat, $lng")
@@ -158,57 +158,24 @@ class LocationService : Service() {
     }
 }
 
-enum class NetworkType(val source: String) {
-    WIFI("wifi"),
-    CELLULAR_2G("2g"),
-    CELLULAR_3G("3g"),
-    CELLULAR_4G("4g"),
-    CELLULAR_5G("5g"),
-    ETHERNET("ethernet"),
-    NONE("none")
-}
-
 @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
-fun getNetworkType(context: Context): NetworkType {
+fun getNetworkType(context: Context): Int {
     val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val network = connectivityManager.activeNetwork ?: return NetworkType.NONE
-    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return NetworkType.NONE
+    val network = connectivityManager.activeNetwork ?: return 0
+    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return 0
 
     return when {
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkType.WIFI
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkType.ETHERNET
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> getCellularGeneration(context)
-        else -> NetworkType.NONE
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> -1
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> -2
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> getNetworkDataType(context)
+        else -> 0
     }
 }
 
 @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
-private fun getCellularGeneration(context: Context): NetworkType {
+private fun getNetworkDataType(context: Context): Int {
     val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
-    return when (telephonyManager.dataNetworkType) {
-        TelephonyManager.NETWORK_TYPE_NR -> NetworkType.CELLULAR_5G
-
-        TelephonyManager.NETWORK_TYPE_LTE -> NetworkType.CELLULAR_4G
-
-        TelephonyManager.NETWORK_TYPE_UMTS,
-        TelephonyManager.NETWORK_TYPE_EVDO_0,
-        TelephonyManager.NETWORK_TYPE_EVDO_A,
-        TelephonyManager.NETWORK_TYPE_EVDO_B,
-        TelephonyManager.NETWORK_TYPE_HSDPA,
-        TelephonyManager.NETWORK_TYPE_HSUPA,
-        TelephonyManager.NETWORK_TYPE_HSPA,
-        TelephonyManager.NETWORK_TYPE_HSPAP,
-        TelephonyManager.NETWORK_TYPE_EHRPD -> NetworkType.CELLULAR_3G
-
-        TelephonyManager.NETWORK_TYPE_GPRS,
-        TelephonyManager.NETWORK_TYPE_EDGE,
-        TelephonyManager.NETWORK_TYPE_CDMA,
-        TelephonyManager.NETWORK_TYPE_1xRTT,
-        TelephonyManager.NETWORK_TYPE_IDEN -> NetworkType.CELLULAR_2G
-
-        else -> NetworkType.CELLULAR_4G // Default fallback for unknown cellular
-    }
+    return telephonyManager.dataNetworkType
 }
 
 
