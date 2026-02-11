@@ -82,7 +82,7 @@ private fun LoginScreen(
             Text(text = stringResource(R.string.login_body))
             Gap10()
             var username by remember { mutableStateOf(if (BuildConfig.DEBUG) "vytautas" else "") }
-            var password by remember { mutableStateOf(if (BuildConfig.DEBUG) "1" else "") }
+            var password by remember { mutableStateOf(if (BuildConfig.DEBUG) "1234" else "") }
             SpedliteTextField(
                 value = username,
                 onValueChange = { username = it },

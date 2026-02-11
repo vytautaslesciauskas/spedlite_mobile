@@ -25,14 +25,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -66,6 +61,7 @@ import lt.agmis.spedlite.ui.component.SpedliteScaffold
 import lt.agmis.spedlite.ui.component.SpedliteTextFieldPassword
 import lt.agmis.spedlite.ui.component.SpedliteTopAppBar
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
+import lt.agmis.spedlite.usecase.AppUpdateUseCase
 import lt.agmis.spedlite.usecase.LogoutUseCase
 import lt.agmis.spedlite.util.ExceptionMessageParser
 import lt.agmis.spedlite.util.runCatchingCoroutine
@@ -155,7 +151,8 @@ fun SettingsDestination(appContainer: AppContainer) {
         newPassword = viewModel.newPassword,
         onNewPasswordChange = viewModel::onNewPasswordChange,
         newPasswordRepeat = viewModel.newPasswordRepeat,
-        onNewPasswordRepeatChange = viewModel::onNewPasswordRepeatChange
+        onNewPasswordRepeatChange = viewModel::onNewPasswordRepeatChange,
+        onCheckForAppUpdateClick = viewModel::checkForAppUpdateClick
     )
 }
 
@@ -171,7 +168,8 @@ private fun SettingsScreen(
     newPassword: String,
     onNewPasswordChange: (String) -> Unit,
     newPasswordRepeat: String,
-    onNewPasswordRepeatChange: (String) -> Unit
+    onNewPasswordRepeatChange: (String) -> Unit,
+    onCheckForAppUpdateClick: () -> Unit
 ) {
     SpedliteScaffold(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -308,6 +306,19 @@ private fun SettingsScreen(
             }
         }
         SpedliteListItem(
+            onClick = onCheckForAppUpdateClick,
+            headlineContent = {
+                Text(text = stringResource(R.string.check_for_app_update))
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = SpedliteTheme.dimen.gap5),
+            leadingContent = {
+                SpedliteIcon(R.drawable.ic_apk)
+            }
+        )
+        Gap2()
+        SpedliteListItem(
             onClick = onLogoutClick,
             headlineContent = {
                 Text(text = stringResource(R.string.settings_logout), color = MaterialTheme.colorScheme.error)
@@ -345,6 +356,7 @@ private fun Preview() {
             "",
             {},
             "",
+            {},
             {}
         )
     }
@@ -356,7 +368,8 @@ class SettingsViewModel(
     private val settings: SpedliteSettings,
     private val apiClient: SpedliteApi,
     private val exceptionMessageParser: ExceptionMessageParser,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val appUpdateUseCase: AppUpdateUseCase
 ) : ViewModel() {
 
     companion object {
@@ -369,6 +382,7 @@ class SettingsViewModel(
                     appContainer.apiClient,
                     appContainer.exceptionMessageParser,
                     appContainer.logoutUseCase,
+                    appContainer.appUpdateUseCase,
                 )
             }
         }
@@ -420,6 +434,54 @@ class SettingsViewModel(
             }.onFailure {
                 dialogManager.showInfoDialog(InfoDialog(exceptionMessageParser.parseMessageOrDefault(it)))
             }
+        }
+    }
+
+    fun checkForAppUpdateClick() {
+        viewModelScope.launch {
+            when (val result = appUpdateUseCase.checkForAppUpdate()) {
+                AppUpdateUseCase.UpdateResult.Failed -> {
+                    dialogManager.showInfoDialog(InfoDialog(R.string.error_update_check))
+                }
+
+                is AppUpdateUseCase.UpdateResult.NewUpdate -> {
+                    dialogManager.showConfirmDialog(
+                        ConfirmDialog(
+                            message = R.string.common_new_app_version,
+                            positiveButtonText = R.string.common_install,
+                            onConfirm = {
+                                downloadAndInstallAppUpdate(result.downloadUrl)
+                            },
+                            onCancel = {
+
+                            }
+                        )
+                    )
+                }
+
+                AppUpdateUseCase.UpdateResult.NoUpdate -> {
+                    dialogManager.showInfoDialog(InfoDialog(R.string.app_latest_version))
+                }
+            }
+        }
+    }
+
+    private fun downloadAndInstallAppUpdate(apkUrl: String) {
+        viewModelScope.launch {
+            appUpdateUseCase.downloadApkFile(
+                fileUrl = apkUrl,
+                onProgress = { progress ->
+                    dialogManager.showFileDownloadProgress(progress)
+                }
+            )
+                .onSuccess { apkFile ->
+                    dialogManager.dismissFileDownloadProgress()
+                    appUpdateUseCase.installApk(apkFile)
+                }
+                .onFailure {
+                    dialogManager.dismissFileDownloadProgress()
+                    dialogManager.showInfoDialog(InfoDialog(R.string.error_update_download_failed))
+                }
         }
     }
 

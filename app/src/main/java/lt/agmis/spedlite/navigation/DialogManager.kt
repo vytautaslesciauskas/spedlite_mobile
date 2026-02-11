@@ -12,6 +12,8 @@ class DialogManager {
     var confirmDialog by mutableStateOf<ConfirmDialog?>(null)
     var progressDialog by mutableStateOf(false)
 
+    var fileDownloadProgress by mutableStateOf<Int?>(null)
+
     fun showInfoDialog(infoDialog: InfoDialog) {
         this.infoDialog = infoDialog
     }
@@ -34,6 +36,14 @@ class DialogManager {
 
     fun dismissConfirmDialog() {
         confirmDialog = null
+    }
+
+    fun showFileDownloadProgress(progress: Int) {
+        fileDownloadProgress = progress
+    }
+
+    fun dismissFileDownloadProgress() {
+        fileDownloadProgress = null
     }
 
 }

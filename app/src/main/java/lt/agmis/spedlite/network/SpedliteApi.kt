@@ -1,28 +1,16 @@
 package lt.agmis.spedlite.network
 
-import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpResponseValidator
-import io.ktor.client.plugins.ResponseException
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.HttpTimeoutConfig
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.request.get
+import io.ktor.client.request.prepareGet
+import io.ktor.client.statement.HttpStatement
 import io.ktor.http.parameters
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import lt.agmis.spedlite.BuildConfig
-import lt.agmis.spedlite.Event
-import lt.agmis.spedlite.EventDispatcher
 import lt.agmis.spedlite.settings.SpedliteSettings
-import java.io.IOException
 
 @Serializable
 data class LoginResponse(
@@ -74,6 +62,12 @@ data class LocationUpdateResponse(
 )
 
 @Serializable
+data class AppVersionResponse(
+    val version: Int,
+    val url: String
+)
+
+@Serializable
 data class ErrorBody(
     val error: String
 )
@@ -98,76 +92,18 @@ interface SpedliteApi {
     ): ChangePasswordResponse
 
     suspend fun logout()
+    suspend fun getAppVersion(): AppVersionResponse
+    suspend fun downloadApk(fileUrl: String): HttpStatement
 }
 
 class SpedliteApiClient(
-    private val eventDispatcher: EventDispatcher,
+    private val client: HttpClient,
     private val baseUrl: String,
     private val spedliteSettings: SpedliteSettings
 ) : SpedliteApi {
 
     private val token: String?
         get() = spedliteSettings.getToken()
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
-    }
-
-    private val client = HttpClient(OkHttp) {
-        install(HttpRequestRetry) {
-            noRetry()
-            retryOnExceptionIf { http, exception ->
-                Napier.w("Retrying request ${http.url}, exception $exception")
-                exception is IOException
-            }
-            maxRetries = 3
-        }
-        engine {
-            config {
-                retryOnConnectionFailure(true)
-            }
-        }
-        expectSuccess = true
-        if (BuildConfig.DEBUG) {
-            install(Logging) {
-                logger = object : Logger {
-                    override fun log(message: String) {
-                        Napier.log(io.github.aakira.napier.LogLevel.VERBOSE, "KTOR", null, message)
-                    }
-                }
-                level = LogLevel.BODY
-                filter {
-                    !it.url.pathSegments.contains("media-upload")
-                }
-            }
-        }
-        install(ContentNegotiation) {
-            json(json)
-        }
-        HttpResponseValidator {
-            handleResponseExceptionWithRequest { ktorException, request ->
-                val responseException = ktorException as? ResponseException
-                    ?: return@handleResponseExceptionWithRequest
-                val response = responseException.response
-                when (val statusCode = response.status.value) {
-                    in 400..599 -> {
-                        val errorJson = response.bodyAsText()
-                        val errorBody = runCatching { json.decodeFromString<ErrorBody>(errorJson) }
-                            .onFailure { Napier.e("Failed to parse ErrorBody from $errorJson", it) }
-                            .getOrNull()
-                        val url = request.url.toString()
-                        val exception = BackendException(statusCode, errorBody, errorJson, url)
-                        if (response.status == HttpStatusCode.Unauthorized && !url.contains("auth_change")) {
-                            eventDispatcher.tryEmit(Event.Unauthorized(errorBody))
-                            spedliteSettings.setToken(null)
-                        }
-                        throw exception
-                    }
-                }
-            }
-        }
-    }
 
     override suspend fun login(username: String, password: String): LoginResponse {
         val response = client.submitForm(
@@ -246,6 +182,21 @@ class SpedliteApiClient(
             url = "$baseUrl/logout.php",
             formParameters = parameters {
                 append("token", token)
+            }
+        )
+    }
+
+    override suspend fun getAppVersion(): AppVersionResponse {
+        return client.get("$baseUrl/version.php").body<AppVersionResponse>()
+    }
+
+    override suspend fun downloadApk(fileUrl: String): HttpStatement {
+        return client.prepareGet(
+            urlString = fileUrl,
+            block = {
+                timeout {
+                    requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                }
             }
         )
     }

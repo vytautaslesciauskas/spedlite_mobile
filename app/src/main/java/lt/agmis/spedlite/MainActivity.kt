@@ -27,6 +27,7 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -53,14 +55,17 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import lt.agmis.spedlite.di.AppContainer
 import lt.agmis.spedlite.navigation.AppNavigator
+import lt.agmis.spedlite.navigation.ConfirmDialog
 import lt.agmis.spedlite.navigation.DialogManager
 import lt.agmis.spedlite.navigation.InfoDialog
 import lt.agmis.spedlite.navigation.Screen
 import lt.agmis.spedlite.navigation.UIText
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
+import lt.agmis.spedlite.ui.component.Gap2
 import lt.agmis.spedlite.ui.component.Gap5
 import lt.agmis.spedlite.ui.component.Gap6
 import lt.agmis.spedlite.ui.component.SpedliteButtonError
@@ -70,12 +75,14 @@ import lt.agmis.spedlite.ui.destination.login.LoginDestination
 import lt.agmis.spedlite.ui.destination.settings.SettingsDestination
 import lt.agmis.spedlite.ui.destination.tasks.TasksDestination
 import lt.agmis.spedlite.ui.theme.SpedliteTheme
+import lt.agmis.spedlite.usecase.AppUpdateUseCase
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var appNavigator: AppNavigator
     private lateinit var dialogManager: DialogManager
     private lateinit var spedliteSettings: SpedliteSettings
+    private lateinit var appUpdateUseCase: AppUpdateUseCase
 
     var isDarkTheme by mutableStateOf(false)
 
@@ -85,6 +92,7 @@ class MainActivity : ComponentActivity() {
         appNavigator = appContainer.appNavigator
         dialogManager = appContainer.dialogManager
         spedliteSettings = appContainer.settings
+        appUpdateUseCase = appContainer.appUpdateUseCase
         isDarkTheme = when (spedliteSettings.getAppTheme()) {
             AppTheme.Light -> false
             AppTheme.Dark -> true
@@ -111,10 +119,50 @@ class MainActivity : ComponentActivity() {
                 }
             }
             .launchIn(AppScope)
+        checkForAppUpdate()
     }
 
     fun getAppContainer(): AppContainer {
         return (application as App).appContainer
+    }
+
+    private fun checkForAppUpdate() {
+        lifecycleScope.launch {
+            val result = appUpdateUseCase.checkForAppUpdate()
+            if (result is AppUpdateUseCase.UpdateResult.NewUpdate) {
+                dialogManager.showConfirmDialog(
+                    ConfirmDialog(
+                        message = R.string.common_new_app_version,
+                        positiveButtonText = R.string.common_install,
+                        onConfirm = {
+                            downloadAndInstallAppUpdate(result.downloadUrl)
+                        },
+                        onCancel = {
+
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    private fun downloadAndInstallAppUpdate(apkUrl: String) {
+        lifecycleScope.launch {
+            appUpdateUseCase.downloadApkFile(
+                fileUrl = apkUrl,
+                onProgress = { progress ->
+                    dialogManager.showFileDownloadProgress(progress)
+                }
+            )
+                .onSuccess { apkFile ->
+                    dialogManager.dismissFileDownloadProgress()
+                    appUpdateUseCase.installApk(apkFile)
+                }
+                .onFailure {
+                    dialogManager.dismissFileDownloadProgress()
+                    dialogManager.showInfoDialog(InfoDialog(R.string.error_update_download_failed))
+                }
+        }
     }
 }
 
@@ -301,6 +349,30 @@ private fun DialogContainer(dialogManager: DialogManager) {
                     CircularProgressIndicator(modifier = Modifier.size(48.dp))
                     Gap6()
                     Text("Loading...")
+                }
+            }
+        }
+    }
+    val fileDownloadProgress = dialogManager.fileDownloadProgress
+    if (fileDownloadProgress != null) {
+        BasicAlertDialog(onDismissRequest = {}) {
+            Surface(
+                modifier = Modifier,
+                shape = AlertDialogDefaults.shape,
+                color = AlertDialogDefaults.containerColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(text = stringResource(R.string.downloading_update))
+                    Gap2()
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                        drawStopIndicator = {
+
+                        },
+                        progress = {
+                            fileDownloadProgress / 100f
+                        })
                 }
             }
         }
