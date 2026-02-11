@@ -119,11 +119,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
             .launchIn(AppScope)
-        checkForAppUpdate()
+
     }
 
     fun getAppContainer(): AppContainer {
         return (application as App).appContainer
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkForAppUpdate()
     }
 
     private fun checkForAppUpdate() {
