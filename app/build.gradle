@@ -20,8 +20,8 @@ android {
         applicationId "lt.agmis.spedlite"
         minSdk 29
         targetSdk 36
-        versionCode 3
-        versionName "0.3"
+        versionCode 4
+        versionName "0.4"
         archivesBaseName = "spedlite-$versionName-$versionCode"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -82,7 +82,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
 
     testImplementation libs.junit
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
     androidTestImplementation platform(libs.androidx.compose.bom)

@@ -42,7 +42,7 @@ class FakeSpedliteApi : SpedliteApi {
         throw NotImplementedError("Not needed for this test")
     }
 
-    override suspend fun updateLocation(latitude: Double, longitude: Double, source: String): LocationUpdateResponse {
+    override suspend fun updateLocation(latitude: Double, longitude: Double, source: Int): LocationUpdateResponse {
         throw NotImplementedError("Not needed for this test")
     }
 

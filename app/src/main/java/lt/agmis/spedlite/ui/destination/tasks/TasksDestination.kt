@@ -23,8 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewModelScope
@@ -52,6 +55,7 @@ import lt.agmis.spedlite.navigation.toUIText
 import lt.agmis.spedlite.settings.AppTheme
 import lt.agmis.spedlite.settings.SpedliteSettings
 import lt.agmis.spedlite.ui.component.DarkModeSwitch
+import lt.agmis.spedlite.ui.component.GapWeight
 import lt.agmis.spedlite.ui.component.SpedliteButton
 import lt.agmis.spedlite.ui.component.SpedliteButtonError
 import lt.agmis.spedlite.ui.component.SpedliteButtonSuccess
@@ -129,7 +133,22 @@ private fun TasksScreen(
                     }
                 })
             }) {
-            tasks.forEach { task -> TaskItem(task = task, onClick = { onTaskClick(task) }, onChangeStatusClick = { onChangeStatusClick(task) }) }
+            if (tasks.isEmpty()) {
+                GapWeight()
+                Text(
+                    text = stringResource(R.string.tasks_empty),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = SpedliteTheme.dimen.gap5),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp
+                )
+                GapWeight()
+            } else {
+                tasks.forEach { task -> TaskItem(task = task, onClick = { onTaskClick(task) }, onChangeStatusClick = { onChangeStatusClick(task) }) }
+            }
         }
     }
 }
@@ -199,6 +218,14 @@ fun ChangeTaskStatusButton(taskStatus: TaskStatus, onClick: () -> Unit, modifier
 private fun Preview() {
     SpedliteTheme {
         TasksScreen({}, {}, false, {}, SampleData.tasks, {}, {})
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun PreviewEmpty() {
+    SpedliteTheme {
+        TasksScreen({}, {}, false, {}, listOf(), {}, {})
     }
 }
 

@@ -37,4 +37,5 @@
     <string name="task_confirm_finish">Do you want to finish task?\n%s</string>
     <string name="task_confirm_restart">Do you want to restart task?\n%s</string>
     <string name="common_version">Version %s</string>
+    <string name="tasks_empty">Currently no tasks are delegated</string>
 </resources>
