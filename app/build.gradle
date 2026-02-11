@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
@@ -22,7 +21,7 @@ android {
         targetSdk 36
         versionCode 4
         versionName "0.4"
-        archivesBaseName = "spedlite-$versionName-$versionCode"
+        base.archivesName = "spedlite-$versionName-$versionCode"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SERVER_URL", "\"https://app.spedlite.eu\"")
@@ -48,6 +47,7 @@ android {
     }
     buildFeatures {
         compose true
+        buildConfig true
     }
 }
 
