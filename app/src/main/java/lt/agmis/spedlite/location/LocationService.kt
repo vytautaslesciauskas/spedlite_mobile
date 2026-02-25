@@ -94,13 +94,13 @@ class LocationService : Service() {
                 try {
                     val location = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
                     updateLocation(location.latitude, location.longitude)
-                    delay(settings.getRefresh().toDuration(DurationUnit.SECONDS))
                 } catch (unlikely: SecurityException) {
                     Napier.e("Lost location permission. Could not request updates.", unlikely)
                     break
                 } catch (exception: Exception) {
                     Napier.e("Failed to get location", exception)
                 }
+                delay(settings.getRefresh().toDuration(DurationUnit.SECONDS))
             }
             isTracking = false
         }

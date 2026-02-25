@@ -1,7 +1,12 @@
 package lt.agmis.spedlite
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -129,6 +134,26 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         checkForAppUpdate()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (!isBatteryOptimizationEnabled(this)) {
+            requestDisableBatteryOptimization(this)
+        }
+    }
+
+    private fun isBatteryOptimizationEnabled(context: Context): Boolean {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val isIgnoring = powerManager.isIgnoringBatteryOptimizations(context.packageName)
+        return isIgnoring
+    }
+
+    private fun requestDisableBatteryOptimization(context: Context) {
+        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            data = Uri.parse("package:${context.packageName}")
+        }
+        context.startActivity(intent)
     }
 
     private fun checkForAppUpdate() {
