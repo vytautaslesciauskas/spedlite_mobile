@@ -87,7 +87,8 @@ interface SpedliteApi {
     suspend fun updateLocation(
         latitude: Double,
         longitude: Double,
-        source: Int,
+        networkType: Int,
+        overrideNetworkType: Int,
         timestampMillis: Long
     ): LocationUpdateResponse
 
@@ -150,7 +151,8 @@ class SpedliteApiClient(
     override suspend fun updateLocation(
         latitude: Double,
         longitude: Double,
-        source: Int,
+        networkType: Int,
+        overrideNetworkType: Int,
         timestampMillis: Long
     ): LocationUpdateResponse {
         val token = token ?: throw RuntimeException("Token is null")
@@ -160,7 +162,8 @@ class SpedliteApiClient(
                 append("token", token)
                 append("lat", latitude.toString())
                 append("lng", longitude.toString())
-                append("source", source.toString())
+                append("source", networkType.toString())
+                append("networkType", overrideNetworkType.toString())
                 append("sent", timestampMillis.toString())
             }
         ).body()

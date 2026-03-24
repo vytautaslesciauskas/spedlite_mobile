@@ -17,10 +17,10 @@ android {
 
     defaultConfig {
         applicationId "lt.agmis.spedlite"
-        minSdk 29
+        minSdk 30
         targetSdk 36
-        versionCode 9
-        versionName "0.9"
+        versionCode 10
+        versionName "1.0.1"
         base.archivesName = "spedlite-$versionName-$versionCode"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -84,6 +84,7 @@ dependencies {
     testImplementation libs.junit
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     androidTestImplementation libs.androidx.junit
+    androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation libs.androidx.espresso.core
     androidTestImplementation platform(libs.androidx.compose.bom)
     androidTestImplementation libs.androidx.compose.ui.test.junit4

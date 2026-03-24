@@ -10,12 +10,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.IBinder
-import android.telephony.TelephonyManager
-import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -43,6 +39,7 @@ class LocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var apiClient: SpedliteApi
+    private lateinit var networkInfoProvider: NetworkInfoProvider
     private lateinit var settings: SpedliteSettings
     private var isTracking = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -67,6 +64,7 @@ class LocationService : Service() {
         Napier.d("Location service created")
         val appContainer = (application as App).appContainer
         apiClient = appContainer.apiClient
+        networkInfoProvider = appContainer.networkInfoProvider
         settings = appContainer.settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
@@ -117,9 +115,15 @@ class LocationService : Service() {
     private fun updateLocation(lat: Double, lng: Double) {
         AppScope.launch {
             val result = runCatchingCoroutine {
-                val networkType = getNetworkType(applicationContext)
+                val networkInfo = networkInfoProvider.getLatestNetworkInfo()
                 val timestampMillis = System.currentTimeMillis()
-                apiClient.updateLocation(lat, lng, networkType, timestampMillis)
+                apiClient.updateLocation(
+                    latitude = lat,
+                    longitude = lng,
+                    networkType = networkInfo.networkType,
+                    overrideNetworkType = networkInfo.overrideNetworkType,
+                    timestampMillis = timestampMillis
+                )
             }
             result.onSuccess {
                 Napier.d("Location updated: $lat, $lng")
@@ -165,31 +169,6 @@ class LocationService : Service() {
         scope.coroutineContext.cancelChildren()
     }
 }
-
-@RequiresPermission(Manifest.permission.READ_PHONE_STATE)
-fun getNetworkType(context: Context): Int {
-    val connectivityManager =
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val network = connectivityManager.activeNetwork ?: return 0
-    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return 0
-
-    return when {
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> -1
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> -2
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> getNetworkDataType(
-            context
-        )
-
-        else -> 0
-    }
-}
-
-@RequiresPermission(Manifest.permission.READ_PHONE_STATE)
-private fun getNetworkDataType(context: Context): Int {
-    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-    return telephonyManager.dataNetworkType
-}
-
 
 private fun hasPermissionForLocationService(context: Context): Boolean {
     return ContextCompat.checkSelfPermission(

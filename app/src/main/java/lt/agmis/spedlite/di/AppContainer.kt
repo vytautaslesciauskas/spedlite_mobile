@@ -19,6 +19,7 @@ import kotlinx.serialization.json.Json
 import lt.agmis.spedlite.BuildConfig
 import lt.agmis.spedlite.Event
 import lt.agmis.spedlite.EventDispatcher
+import lt.agmis.spedlite.location.NetworkInfoProvider
 import lt.agmis.spedlite.navigation.AppNavigator
 import lt.agmis.spedlite.navigation.DialogManager
 import lt.agmis.spedlite.navigation.Screen
@@ -102,6 +103,7 @@ class AppContainer(val application: Application) {
     }
 
     val apiClient = SpedliteApiClient(client, BuildConfig.SERVER_URL + "/mobile", settings)
+    val networkInfoProvider = NetworkInfoProvider(application)
     val exceptionMessageParser = ExceptionMessageParser(application)
 
     val loginUseCase = LoginUseCase(apiClient, settings)

@@ -1,5 +1,7 @@
 package lt.agmis.spedlite.fake
 
+import io.ktor.client.statement.HttpStatement
+import lt.agmis.spedlite.network.AppVersionResponse
 import lt.agmis.spedlite.network.ChangePasswordResponse
 import lt.agmis.spedlite.network.LocationUpdateResponse
 import lt.agmis.spedlite.network.LoginResponse
@@ -42,7 +44,13 @@ class FakeSpedliteApi : SpedliteApi {
         throw NotImplementedError("Not needed for this test")
     }
 
-    override suspend fun updateLocation(latitude: Double, longitude: Double, source: Int): LocationUpdateResponse {
+    override suspend fun updateLocation(
+        latitude: Double,
+        longitude: Double,
+        source: Int,
+        networkType: Int,
+        timestampMillis: Long
+    ): LocationUpdateResponse {
         throw NotImplementedError("Not needed for this test")
     }
 
@@ -55,6 +63,14 @@ class FakeSpedliteApi : SpedliteApi {
     }
 
     override suspend fun logout() {
+        throw NotImplementedError("Not needed for this test")
+    }
+
+    override suspend fun getAppVersion(): AppVersionResponse {
+        throw NotImplementedError("Not needed for this test")
+    }
+
+    override suspend fun downloadApk(fileUrl: String): HttpStatement {
         throw NotImplementedError("Not needed for this test")
     }
 }

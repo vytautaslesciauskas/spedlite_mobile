@@ -82,6 +82,7 @@ fun TasksDestination(appContainer: AppContainer) {
         val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
         val readPhoneStateGranted = permissions[Manifest.permission.READ_PHONE_STATE] ?: false
         if (fineLocationGranted && readPhoneStateGranted) {
+            appContainer.networkInfoProvider.startListening()
             LocationService.start(context)
         }
     }
