@@ -79,7 +79,11 @@ class LocationService : Service() {
             return START_NOT_STICKY
         }
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+        startForeground(
+            NOTIFICATION_ID,
+            createNotification(),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        )
         if (!isTracking) {
             requestLocationUpdates()
         }
@@ -92,7 +96,10 @@ class LocationService : Service() {
             isTracking = true
             while (isActive) {
                 try {
-                    val location = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
+                    val location = fusedLocationClient.getCurrentLocation(
+                        Priority.PRIORITY_HIGH_ACCURACY,
+                        null
+                    ).await()
                     updateLocation(location.latitude, location.longitude)
                 } catch (unlikely: SecurityException) {
                     Napier.e("Lost location permission. Could not request updates.", unlikely)
@@ -111,7 +118,8 @@ class LocationService : Service() {
         AppScope.launch {
             val result = runCatchingCoroutine {
                 val networkType = getNetworkType(applicationContext)
-                apiClient.updateLocation(lat, lng, networkType)
+                val timestampMillis = System.currentTimeMillis()
+                apiClient.updateLocation(lat, lng, networkType, timestampMillis)
             }
             result.onSuccess {
                 Napier.d("Location updated: $lat, $lng")
@@ -160,14 +168,18 @@ class LocationService : Service() {
 
 @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
 fun getNetworkType(context: Context): Int {
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val network = connectivityManager.activeNetwork ?: return 0
     val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return 0
 
     return when {
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> -1
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> -2
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> getNetworkDataType(context)
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> getNetworkDataType(
+            context
+        )
+
         else -> 0
     }
 }

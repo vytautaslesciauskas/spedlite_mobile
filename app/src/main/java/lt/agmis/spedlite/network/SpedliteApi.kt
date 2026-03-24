@@ -84,7 +84,13 @@ interface SpedliteApi {
     suspend fun login(username: String, password: String): LoginResponse
     suspend fun getTasks(): TasksResponse
     suspend fun changeTaskStatus(taskId: Long, status: Int): StatusChangeResponse
-    suspend fun updateLocation(latitude: Double, longitude: Double, source: Int): LocationUpdateResponse
+    suspend fun updateLocation(
+        latitude: Double,
+        longitude: Double,
+        source: Int,
+        timestampMillis: Long
+    ): LocationUpdateResponse
+
     suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
@@ -144,7 +150,8 @@ class SpedliteApiClient(
     override suspend fun updateLocation(
         latitude: Double,
         longitude: Double,
-        source: Int
+        source: Int,
+        timestampMillis: Long
     ): LocationUpdateResponse {
         val token = token ?: throw RuntimeException("Token is null")
         return client.submitForm(
@@ -154,6 +161,7 @@ class SpedliteApiClient(
                 append("lat", latitude.toString())
                 append("lng", longitude.toString())
                 append("source", source.toString())
+                append("sent", timestampMillis.toString())
             }
         ).body()
     }
